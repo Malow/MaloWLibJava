@@ -2,14 +2,14 @@ package com.github.malow.malowlib;
 
 public class RandomNumberGenerator
 {
-  public static float GetRandomFloat(float min, float max)
+  public static float getRandomFloat(float min, float max)
   {
     double rnd = Math.random();
     float range = max - min;
     return (float) ((rnd * range) + min);
   }
 
-  public static int GetRandomInt(int min, int max)
+  public static int getRandomInt(int min, int max)
   {
     max++;
     double rnd = Math.random();
@@ -17,8 +17,8 @@ public class RandomNumberGenerator
     return (int) ((rnd * range) + min);
   }
 
-  public static int RollD(int x)
+  public static int rollD(int x)
   {
-    return GetRandomInt(1, x);
+    return getRandomInt(1, x);
   }
 }

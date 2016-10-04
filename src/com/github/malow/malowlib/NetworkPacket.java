@@ -3,21 +3,21 @@ package com.github.malow.malowlib;
 public class NetworkPacket extends ProcessEvent
 {
   private String message;
-  private long id;
+  private NetworkChannel sender;
 
-  public NetworkPacket(String message, long SenderID)
+  public NetworkPacket(String message, NetworkChannel sender)
   {
     this.message = message;
-    this.id = SenderID;
+    this.sender = sender;
   }
 
-  public String GetMessage()
+  public String getMessage()
   {
     return this.message;
   }
 
-  public long GetSenderID()
+  public NetworkChannel getSender()
   {
-    return this.id;
+    return this.sender;
   }
 }

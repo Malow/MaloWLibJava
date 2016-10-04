@@ -4,15 +4,15 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public abstract class NetworkServer extends Process
+public abstract class NetworkServer extends MaloWProcess
 {
-  private ServerSocket sock = null;
+  private ServerSocket serverSocket = null;
 
   public NetworkServer(int port)
   {
     try
     {
-      this.sock = new ServerSocket(port);
+      this.serverSocket = new ServerSocket(port);
     }
     catch (IOException e)
     {
@@ -21,52 +21,45 @@ public abstract class NetworkServer extends Process
     }
   }
 
-  public NetworkChannel ListenForNewClients()
+  public NetworkChannel listenForNewClients()
   {
-    NetworkChannel nc = null;
-
-    Socket s = null;
     try
     {
-      s = this.sock.accept();
+      Socket socket = this.serverSocket.accept();
+      if (socket != null) return new NetworkChannel(socket);
     }
     catch (IOException e)
     {
       System.out.println("Failed to Listen for new connections.");
     }
-
-    if (!this.stayAlive) return nc;
-
-    if (s != null) nc = new NetworkChannel(s);
-
-    return nc;
+    return null;
   }
 
   @Override
-  public void Life()
+  public void life()
   {
     while (this.stayAlive)
     {
-      NetworkChannel nc = this.ListenForNewClients();
-      if (nc != null && this.stayAlive) this.ClientConnected(nc);
+      NetworkChannel nc = this.listenForNewClients();
+      if (nc != null && this.stayAlive) this.clientConnected(nc);
     }
   }
 
-  public abstract void ClientConnected(NetworkChannel nc);
+  public abstract void clientConnected(NetworkChannel nc);
 
   @Override
-  public void CloseSpecific()
+  public void closeSpecific()
   {
     this.stayAlive = false;
     try
     {
-      this.sock.close();
+      this.serverSocket.close();
     }
     catch (IOException e)
     {
       System.out.println("Failed to close socket in Server.");
     }
 
-    this.WaitUntillDone();
+    this.waitUntillDone();
   }
 }

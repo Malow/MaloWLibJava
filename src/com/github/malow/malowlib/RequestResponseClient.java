@@ -1,6 +1,6 @@
 package com.github.malow.malowlib;
 
-public class RequestResponseClient extends Process
+public class RequestResponseClient extends MaloWProcess
 {
   private String ip;
   private int port;
@@ -12,7 +12,7 @@ public class RequestResponseClient extends Process
   {
     this.ip = ip;
     this.port = port;
-    this.Start();
+    this.start();
   }
 
   public static class ConnectionBrokenException extends Exception
@@ -25,7 +25,7 @@ public class RequestResponseClient extends Process
     if (!this.isAlive()) { throw new ConnectionBrokenException(); }
 
     System.out.println("Sending data: " + msg);
-    this.nc.SendData(msg);
+    this.nc.sendData(msg);
 
     while (this.response == null)
     {
@@ -46,28 +46,28 @@ public class RequestResponseClient extends Process
   public boolean isAlive()
   {
     if (this.nc == null) return false;
-    return this.nc.GetState() == Process.RUNNING;
+    return this.nc.getState() == MaloWProcess.RUNNING;
   }
 
   @Override
-  public void Life()
+  public void life()
   {
     nc = new NetworkChannel(ip, port);
-    nc.SetNotifier(this);
-    nc.Start();
+    nc.setNotifier(this);
+    nc.start();
 
     while (this.stayAlive)
     {
-      ProcessEvent ev = this.WaitEvent();
+      ProcessEvent ev = this.waitEvent();
       if (ev instanceof NetworkPacket)
       {
-        this.response = ((NetworkPacket) ev).GetMessage();
+        this.response = ((NetworkPacket) ev).getMessage();
         System.out.println("Received data: " + this.response);
       }
     }
 
-    this.nc.Close();
-    this.nc.WaitUntillDone();
+    this.nc.close();
+    this.nc.waitUntillDone();
     this.nc = null;
   }
 }

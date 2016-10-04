@@ -3,40 +3,40 @@ package com.github.malow.malowlib;
 import java.io.IOException;
 import java.net.Socket;
 
-public class NetworkChannel extends Process
+public class NetworkChannel extends MaloWProcess
 {
-  private Socket sock = null;
-  private Process notifier = null;
+  private Socket socket = null;
+  private MaloWProcess notifier = null;
   private String buffer = "";
 
-  private static long nextCID = 0;
+  private static long nextID = 0;
   private long id;
 
   public NetworkChannel(Socket socket)
   {
-    this.id = NetworkChannel.nextCID;
-    NetworkChannel.nextCID++;
+    this.id = NetworkChannel.nextID;
+    NetworkChannel.nextID++;
 
-    this.sock = socket;
+    this.socket = socket;
   }
 
   public NetworkChannel(String ip, int port)
   {
-    this.id = NetworkChannel.nextCID;
-    NetworkChannel.nextCID++;
+    this.id = NetworkChannel.nextID;
+    NetworkChannel.nextID++;
 
     try
     {
-      this.sock = new Socket(ip, port);
+      this.socket = new Socket(ip, port);
     }
     catch (Exception e)
     {
-      this.Close();
+      this.close();
       System.out.println("Error creating socket: " + ip + ":" + port + ". Channel: " + this.id);
     }
   }
 
-  public void SendData(String msg)
+  public void sendData(String msg)
   {
     char ten = 10;
     msg += ten;
@@ -49,33 +49,33 @@ public class NetworkChannel extends Process
 
     try
     {
-      this.sock.getOutputStream().write(bufs);
+      this.socket.getOutputStream().write(bufs);
     }
     catch (IOException e1)
     {
-      this.Close();
+      this.close();
       System.out.println("Error sending data. Channel: " + this.id);
     }
   }
 
   @Override
-  public void Life()
+  public void life()
   {
     while (this.stayAlive)
     {
-      String msg = this.ReceiveData();
+      String msg = this.receiveData();
       if (msg != "")
       {
         if (this.notifier != null && this.stayAlive)
         {
-          NetworkPacket np = new NetworkPacket(msg, this.id);
-          this.notifier.PutEvent(np);
+          NetworkPacket np = new NetworkPacket(msg, this);
+          this.notifier.putEvent(np);
         }
       }
     }
   }
 
-  public void SetNotifier(Process notifier)
+  public void setNotifier(MaloWProcess notifier)
   {
     this.notifier = notifier;
   }
@@ -86,30 +86,30 @@ public class NetworkChannel extends Process
   }
 
   @Override
-  public void CloseSpecific()
+  public void closeSpecific()
   {
-    if (this.sock == null) return;
+    if (this.socket == null) return;
 
     try
     {
-      this.sock.shutdownInput();
+      this.socket.shutdownInput();
     }
     catch (IOException e1)
     {
-      System.out.println("Error trying to perform shutdown on socket from a ->Close() call. Channel: " + this.id);
+      System.out.println("Error trying to perform shutdownInput on socket from a ->Close() call. Channel: " + this.id);
     }
     try
     {
-      this.sock.shutdownOutput();
+      this.socket.shutdownOutput();
     }
     catch (IOException e1)
     {
-      System.out.println("Error trying to perform shutdown on socket from a ->Close() call. Channel: " + this.id);
+      System.out.println("Error trying to perform shutdownOutput on socket from a ->Close() call. Channel: " + this.id);
     }
 
     try
     {
-      this.sock.close();
+      this.socket.close();
     }
     catch (IOException e)
     {
@@ -117,7 +117,7 @@ public class NetworkChannel extends Process
     }
   }
 
-  private String ReceiveData()
+  private String receiveData()
   {
     String msg = "";
 
@@ -144,22 +144,22 @@ public class NetworkChannel extends Process
         int retCode = 0;
         try
         {
-          retCode = this.sock.getInputStream().read(bufs);
+          retCode = this.socket.getInputStream().read(bufs);
         }
         catch (Exception e)
         {
-          this.Close();
+          this.close();
           System.out.println("Channel " + this.id + " exception when receiving, closing. " + e);
         }
 
         if (retCode == -1)
         {
-          this.Close();
+          this.close();
           System.out.println("Error receiving data by channel: " + this.id + ". Error: " + retCode + ". Probably due to crash/improper disconnect");
         }
         else if (retCode == 0)
         {
-          this.Close();
+          this.close();
           System.out.println("Channel " + this.id + " disconnected, closing.");
         }
 
