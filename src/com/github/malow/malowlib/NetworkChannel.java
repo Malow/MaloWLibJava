@@ -80,7 +80,7 @@ public class NetworkChannel extends MaloWProcess
     this.notifier = notifier;
   }
 
-  public long GetChannelID()
+  public long getChannelID()
   {
     return this.id;
   }

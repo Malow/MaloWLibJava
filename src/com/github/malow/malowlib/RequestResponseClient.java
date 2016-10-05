@@ -46,7 +46,7 @@ public class RequestResponseClient extends MaloWProcess
   public boolean isAlive()
   {
     if (this.nc == null) return false;
-    return this.nc.getState() == MaloWProcess.RUNNING;
+    return this.nc.getState() == ProcessState.RUNNING;
   }
 
   @Override
@@ -69,5 +69,11 @@ public class RequestResponseClient extends MaloWProcess
     this.nc.close();
     this.nc.waitUntillDone();
     this.nc = null;
+  }
+
+  @Override
+  public void closeSpecific()
+  {
+
   }
 }

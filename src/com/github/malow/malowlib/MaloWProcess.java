@@ -1,18 +1,19 @@
 package com.github.malow.malowlib;
 
-//import java.util.ArrayDeque;
-import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public abstract class MaloWProcess
 {
-  class ProcThread extends Thread
+
+  private class ProcThread extends Thread
   {
+
     @Override
     public void run()
     {
-      state = RUNNING;
+      state = ProcessState.RUNNING;
       life();
-      state = FINISHED;
+      state = ProcessState.FINISHED;
     }
 
     public synchronized void resumeThread()
@@ -40,52 +41,48 @@ public abstract class MaloWProcess
     }
   }
 
-  public static final int NOT_STARTED = 0, WAITING = 1, RUNNING = 2, FINISHED = 3;
-  private static final int DEFAULT_WARNING_THRESHOLD_EVENTQUEUE_FULL = 250;
+  public enum ProcessState
+  {
+    NOT_STARTED, WAITING, RUNNING, FINISHED
+  }
 
-  private static long nextID = 0;
-
-  private ProcThread proc;
-  private LinkedList<ProcessEvent> eventQueue;
-  private int state;
+  public static final int DEFAULT_WARNING_THRESHOLD_EVENTQUEUE_FULL = 250;
+  public static final long WAIT_TIMEOUT = 0;
   private int warningThresholdEventQueue = DEFAULT_WARNING_THRESHOLD_EVENTQUEUE_FULL;
+  private static long nextID = 0;
+  private ProcThread thread;
+  private ConcurrentLinkedQueue<ProcessEvent> eventQueue;
+  private ProcessState state;
   private long id;
-
-  private boolean debug = false;
-
   protected boolean stayAlive = true;
 
   public MaloWProcess()
   {
     this.id = MaloWProcess.nextID;
     MaloWProcess.nextID++;
-    this.state = NOT_STARTED;
-    this.eventQueue = new LinkedList<ProcessEvent>();
-    this.proc = new ProcThread();
+    this.state = ProcessState.NOT_STARTED;
+    this.eventQueue = new ConcurrentLinkedQueue<ProcessEvent>();
+    this.thread = new ProcThread();
   }
 
   public abstract void life();
 
   public void start()
   {
-    if (this.state == NOT_STARTED)
+    if (this.state == ProcessState.NOT_STARTED)
     {
-      this.proc.start();
+      this.thread.start();
     }
   }
 
   public void suspend()
   {
-    this.proc.suspendThread();
+    this.thread.suspendThread();
   }
 
   public void resume()
   {
-    // Needed because WaitEvent is not completely synchronized, so if a thread wants to resume it while it's 
-    // going to sleep we need to continuously call on it to restart until it responds. Either solve this a better way or start using 
-    // PeekEvent() instead of WaitEvent() more and add a sleep between Peeks.
-    while (this.state == WAITING)
-      this.proc.resumeThread();
+    this.thread.resumeThread();
   }
 
   public void close()
@@ -96,125 +93,70 @@ public abstract class MaloWProcess
     this.closeSpecific();
   }
 
-  public void closeSpecific()
-  {
-
-  }
+  public abstract void closeSpecific();
 
   public void waitUntillDone()
   {
-    while (this.state != FINISHED)
-      try
-      {
-        Thread.sleep(1);
-      }
-      catch (InterruptedException e)
-      {
-        System.out.println("WaitUntillDone failed");
-      }
+    try
+    {
+      this.thread.join();
+    }
+    catch (InterruptedException e1)
+    {
+      System.out.println("waitUntillDone failed");
+    }
   }
 
   public ProcessEvent waitEvent()
   {
-    boolean sleep = this.waitEventCheckForSleep();
-
-    if (sleep)
+    if (this.eventQueue.isEmpty())
     {
-      this.suspend();
-      this.state = RUNNING;
+      try
+      {
+        synchronized (this)
+        {
+          this.state = ProcessState.WAITING;
+          this.wait();
+          this.state = ProcessState.RUNNING;
+        }
+      }
+      catch (InterruptedException e)
+      {
+        System.out.println("waitEvent failed");
+      }
     }
-
-    return this.waitEventDequeEvent();
+    return this.peekEvent();
   }
 
-  private synchronized boolean waitEventCheckForSleep()
+  public ProcessEvent peekEvent()
   {
-    if (this.debug) System.out.println("ERROR: Proc: " + this.id + " Mutex for WaitEvent Failed, multiple procs modifying data.");
-    this.debug = true;
-    boolean sleep = this.eventQueue.isEmpty();
-
-    if (sleep)
-    {
-      this.state = WAITING;
-    }
-
-    this.debug = false;
-    return sleep;
-  }
-
-  private synchronized ProcessEvent waitEventDequeEvent()
-  {
-    if (this.debug) System.out.println("ERROR: Proc: " + this.id + " Mutex for WaitEvent, second, Failed, multiple procs modifying data.");
-    this.debug = true;
-
-    ProcessEvent ev = this.eventQueue.poll();
-    this.debug = false;
-    return ev;
-  }
-
-  public synchronized ProcessEvent peekEvent()
-  {
-    if (this.debug) System.out.println("ERROR: Proc: " + this.id + " Mutex for WaitEvent Failed, multiple procs modifying data.");
-    this.debug = true;
-
-    ProcessEvent ev = null;
-    if (!this.eventQueue.isEmpty())
-    {
-      ev = this.eventQueue.poll();
-    }
-
-    this.debug = false;
-    return ev;
+    return this.eventQueue.poll();
   }
 
   public void putEvent(ProcessEvent ev)
   {
-    this.putEvent(ev, true);
+    this.eventQueue.add(ev);
+    if (this.eventQueue.size() > this.warningThresholdEventQueue)
+    {
+      this.warningThresholdEventQueue *= 2;
+      System.out.println("Warning, EventQueue of process " + this.id + " has " + this.eventQueue.size() + " unread events.");
+    }
+    synchronized (this)
+    {
+      this.notifyAll();
+    }
   }
 
-  public synchronized void putEvent(ProcessEvent ev, boolean important)
+  public void putUnimportantEvent(ProcessEvent ev)
   {
-    boolean go = true;
-    if (!important)
-    {
-      if (this.eventQueue.size() > 20)
-      {
-        go = false;
-      }
-    }
-
-    if (go)
-    {
-      if (this.debug) System.out.println("ERROR: Proc: " + this.id + " Mutex for WaitEvent Failed, multiple procs modifying data.");
-      this.debug = true;
-
-      int queueSize = this.eventQueue.size();
-
-      this.eventQueue.add(ev);
-
-      if (queueSize > this.warningThresholdEventQueue)
-      {
-        System.out.println("Warning, EventQueue of process " + this.id + " has " + this.eventQueue.size() + " unread events.");
-        this.warningThresholdEventQueue *= 2;
-      }
-
-      if (this.state == WAITING)
-      {
-        this.resume();
-      }
-
-      this.debug = false;
-    }
+    int queueSize = this.eventQueue.size();
+    if (queueSize > 20) { return; }
+    this.putEvent(ev);
   }
 
-  public int getState()
+  public ProcessState getState()
   {
     return this.state;
-  }
-
-  public void setState(int state)
-  {
-    this.state = state;
   }
 
   public long getID()
