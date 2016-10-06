@@ -17,7 +17,7 @@ public abstract class NetworkServer extends MaloWProcess
     catch (IOException e)
     {
       this.stayAlive = false;
-      System.out.println("Invalid socket, failed to create socket in Server.");
+      MaloWLogger.error("Invalid socket, failed to create socket in Server.", e);
     }
   }
 
@@ -30,7 +30,7 @@ public abstract class NetworkServer extends MaloWProcess
     }
     catch (IOException e)
     {
-      System.out.println("Failed to Listen for new connections.");
+      MaloWLogger.error("Failed to Listen for new connections.", e);
     }
     return null;
   }
@@ -57,7 +57,7 @@ public abstract class NetworkServer extends MaloWProcess
     }
     catch (IOException e)
     {
-      System.out.println("Failed to close socket in Server.");
+      MaloWLogger.error("Failed to close socket in Server.", e);
     }
 
     this.waitUntillDone();

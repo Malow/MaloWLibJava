@@ -32,7 +32,7 @@ public class NetworkChannel extends MaloWProcess
     catch (Exception e)
     {
       this.close();
-      System.out.println("Error creating socket: " + ip + ":" + port + ". Channel: " + this.id);
+      MaloWLogger.error("Error creating socket: " + ip + ":" + port + ". Channel: " + this.id, e);
     }
   }
 
@@ -51,10 +51,10 @@ public class NetworkChannel extends MaloWProcess
     {
       this.socket.getOutputStream().write(bufs);
     }
-    catch (IOException e1)
+    catch (IOException e)
     {
       this.close();
-      System.out.println("Error sending data. Channel: " + this.id);
+      MaloWLogger.error("Error sending data. Channel: " + this.id, e);
     }
   }
 
@@ -68,11 +68,16 @@ public class NetworkChannel extends MaloWProcess
       {
         if (this.notifier != null && this.stayAlive)
         {
-          NetworkPacket np = new NetworkPacket(msg, this);
+          ProcessEvent np = this.createEvent(msg);
           this.notifier.putEvent(np);
         }
       }
     }
+  }
+
+  public ProcessEvent createEvent(String msg)
+  {
+    return new NetworkPacket(msg, this);
   }
 
   public void setNotifier(MaloWProcess notifier)
@@ -94,17 +99,17 @@ public class NetworkChannel extends MaloWProcess
     {
       this.socket.shutdownInput();
     }
-    catch (IOException e1)
+    catch (IOException e)
     {
-      System.out.println("Error trying to perform shutdownInput on socket from a ->Close() call. Channel: " + this.id);
+      MaloWLogger.error("Error trying to perform shutdownInput on socket from a ->Close() call. Channel: " + this.id, e);
     }
     try
     {
       this.socket.shutdownOutput();
     }
-    catch (IOException e1)
+    catch (IOException e)
     {
-      System.out.println("Error trying to perform shutdownOutput on socket from a ->Close() call. Channel: " + this.id);
+      MaloWLogger.error("Error trying to perform shutdownOutput on socket from a ->Close() call. Channel: " + this.id, e);
     }
 
     try
@@ -113,7 +118,7 @@ public class NetworkChannel extends MaloWProcess
     }
     catch (IOException e)
     {
-      System.out.println("Failed to close socket in channel: " + this.id);
+      MaloWLogger.error("Failed to close socket in channel: " + this.id, e);
     }
   }
 
@@ -149,18 +154,18 @@ public class NetworkChannel extends MaloWProcess
         catch (Exception e)
         {
           this.close();
-          System.out.println("Channel " + this.id + " exception when receiving, closing. " + e);
+          MaloWLogger.error("Channel " + this.id + " exception when receiving, closing. " + e, e);
         }
 
         if (retCode == -1)
         {
           this.close();
-          System.out.println("Error receiving data by channel: " + this.id + ". Error: " + retCode + ". Probably due to crash/improper disconnect");
+          MaloWLogger.warning("Error receiving data by channel: " + this.id + ". Error: " + retCode + ". Probably due to crash/improper disconnect");
         }
         else if (retCode == 0)
         {
           this.close();
-          System.out.println("Channel " + this.id + " disconnected, closing.");
+          MaloWLogger.warning("Channel " + this.id + " disconnected, closing.");
         }
 
         if (retCode > 0)
@@ -188,7 +193,6 @@ public class NetworkChannel extends MaloWProcess
       }
       while (goAgain && this.stayAlive);
     }
-
     return msg;
   }
 }

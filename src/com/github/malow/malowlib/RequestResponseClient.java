@@ -24,7 +24,6 @@ public class RequestResponseClient extends MaloWProcess
   {
     if (!this.isAlive()) { throw new ConnectionBrokenException(); }
 
-    System.out.println("Sending data: " + msg);
     this.nc.sendData(msg);
 
     while (this.response == null)
@@ -35,7 +34,7 @@ public class RequestResponseClient extends MaloWProcess
       }
       catch (InterruptedException e)
       {
-        e.printStackTrace();
+        MaloWLogger.error("Failed to sleep", e);
       }
     }
     String resp = this.response;
@@ -62,7 +61,6 @@ public class RequestResponseClient extends MaloWProcess
       if (ev instanceof NetworkPacket)
       {
         this.response = ((NetworkPacket) ev).getMessage();
-        System.out.println("Received data: " + this.response);
       }
     }
 

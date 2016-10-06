@@ -22,9 +22,9 @@ public abstract class MaloWProcess
       {
         notify();
       }
-      catch (Exception E)
+      catch (Exception e)
       {
-        System.out.println("resumeThread failed");
+        MaloWLogger.error("resumeThread failed", e);
       }
     }
 
@@ -34,9 +34,9 @@ public abstract class MaloWProcess
       {
         wait();
       }
-      catch (Exception E)
+      catch (Exception e)
       {
-        System.out.println("suspendThread failed");
+        MaloWLogger.error("suspendThread failed", e);
       }
     }
   }
@@ -101,9 +101,9 @@ public abstract class MaloWProcess
     {
       this.thread.join();
     }
-    catch (InterruptedException e1)
+    catch (InterruptedException e)
     {
-      System.out.println("waitUntillDone failed");
+      MaloWLogger.error("waitUntillDone failed", e);
     }
   }
 
@@ -122,7 +122,7 @@ public abstract class MaloWProcess
       }
       catch (InterruptedException e)
       {
-        System.out.println("waitEvent failed");
+        MaloWLogger.error("waitEvent failed", e);
       }
     }
     return this.peekEvent();
@@ -139,7 +139,7 @@ public abstract class MaloWProcess
     if (this.eventQueue.size() > this.warningThresholdEventQueue)
     {
       this.warningThresholdEventQueue *= 2;
-      System.out.println("Warning, EventQueue of process " + this.id + " has " + this.eventQueue.size() + " unread events.");
+      MaloWLogger.warning("Warning, EventQueue of process " + this.id + " has " + this.eventQueue.size() + " unread events.");
     }
     synchronized (this)
     {
