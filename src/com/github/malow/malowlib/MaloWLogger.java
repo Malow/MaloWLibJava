@@ -60,6 +60,11 @@ public class MaloWLogger
   {
     logToSyso = val;
   }
+  
+  public static void setLogToSpecificFiles(boolean val)
+  {
+    logToSpecificFiles = val;
+  }
 
   public static void info(String msg)
   {
