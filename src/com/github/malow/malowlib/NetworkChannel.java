@@ -68,14 +68,13 @@ public class NetworkChannel extends MaloWProcess
       {
         if (this.notifier != null && this.stayAlive)
         {
-          ProcessEvent np = this.createEvent(msg);
-          this.notifier.putEvent(np);
+          this.notifier.putEvent(this.createEvent(msg));
         }
       }
     }
   }
 
-  public ProcessEvent createEvent(String msg)
+  protected ProcessEvent createEvent(String msg)
   {
     return new NetworkPacket(msg, this);
   }

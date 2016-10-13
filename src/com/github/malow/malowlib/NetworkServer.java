@@ -26,13 +26,18 @@ public abstract class NetworkServer extends MaloWProcess
     try
     {
       Socket socket = this.serverSocket.accept();
-      if (socket != null) return new NetworkChannel(socket);
+      if (socket != null) return this.createNetworkChannel(socket);
     }
     catch (IOException e)
     {
       MaloWLogger.error("Failed to Listen for new connections.", e);
     }
     return null;
+  }
+
+  protected NetworkChannel createNetworkChannel(Socket socket)
+  {
+    return new NetworkChannel(socket);
   }
 
   @Override
