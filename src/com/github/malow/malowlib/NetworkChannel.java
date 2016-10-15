@@ -96,24 +96,8 @@ public class NetworkChannel extends MaloWProcess
 
     try
     {
-      this.socket.shutdownInput();
-    }
-    catch (IOException e)
-    {
-      MaloWLogger.error("Error trying to perform shutdownInput on socket from a ->Close() call. Channel: " + this.id, e);
-    }
-    try
-    {
-      this.socket.shutdownOutput();
-    }
-    catch (IOException e)
-    {
-      MaloWLogger.error("Error trying to perform shutdownOutput on socket from a ->Close() call. Channel: " + this.id, e);
-    }
-
-    try
-    {
       this.socket.close();
+      this.socket = null;
     }
     catch (IOException e)
     {
@@ -153,18 +137,20 @@ public class NetworkChannel extends MaloWProcess
         catch (Exception e)
         {
           this.close();
-          MaloWLogger.error("Channel " + this.id + " exception when receiving, closing. " + e, e);
+          if (this.stayAlive) MaloWLogger.error("Channel " + this.id + " exception when receiving, closing. " + e, e);
         }
 
         if (retCode == -1)
         {
           this.close();
-          MaloWLogger.warning("Error receiving data by channel: " + this.id + ". Error: " + retCode + ". Probably due to crash/improper disconnect");
+          if (this.stayAlive) MaloWLogger
+              .warning("Error receiving data by channel: " + this.id + ". Error: " + retCode + ". Probably due to crash/improper disconnect");
+
         }
         else if (retCode == 0)
         {
           this.close();
-          MaloWLogger.warning("Channel " + this.id + " disconnected, closing.");
+          if (this.stayAlive) MaloWLogger.warning("Channel " + this.id + " disconnected, closing.");
         }
 
         if (retCode > 0)

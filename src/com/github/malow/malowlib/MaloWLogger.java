@@ -40,10 +40,10 @@ public class MaloWLogger
     writeToFile(LogLevel.INFO.fileName, "\n-----------------------------------\n");
     writeToFile(LogLevel.WARNING.fileName, "\n-----------------------------------\n");
     writeToFile(LogLevel.ERROR.fileName, "\n-----------------------------------\n");
-    logSpecificLevel(ALL_FILE, "Application Launch");
-    logSpecificLevel(LogLevel.INFO.fileName, "Application Launch");
-    logSpecificLevel(LogLevel.WARNING.fileName, "Application Launch");
-    logSpecificLevel(LogLevel.ERROR.fileName, "Application Launch");
+    logSpecificLevel(ALL_FILE, "MaloWLogger: Application Launch");
+    logSpecificLevel(LogLevel.INFO.fileName, "MaloWLogger: Application Launch");
+    logSpecificLevel(LogLevel.WARNING.fileName, "MaloWLogger: Application Launch");
+    logSpecificLevel(LogLevel.ERROR.fileName, "MaloWLogger: Application Launch");
   }
 
   public static void setLoggingThreshold(LogLevel level)
@@ -60,7 +60,7 @@ public class MaloWLogger
   {
     logToSyso = val;
   }
-  
+
   public static void setLogToSpecificFiles(boolean val)
   {
     logToSpecificFiles = val;
