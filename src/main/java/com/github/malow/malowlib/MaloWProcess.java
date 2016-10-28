@@ -1,7 +1,7 @@
 package com.github.malow.malowlib;
 
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public abstract class MaloWProcess
 {
@@ -62,7 +62,7 @@ public abstract class MaloWProcess
     this.id = MaloWProcess.nextID;
     MaloWProcess.nextID++;
     this.state = ProcessState.NOT_STARTED;
-    this.eventQueue = new LinkedBlockingDeque<ProcessEvent>();
+    this.eventQueue = new LinkedBlockingQueue<ProcessEvent>();
     this.thread = new ProcThread();
   }
 
