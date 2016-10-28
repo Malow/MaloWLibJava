@@ -1,6 +1,7 @@
 package com.github.malow.malowlib;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
 public abstract class MaloWProcess
 {
@@ -43,7 +44,7 @@ public abstract class MaloWProcess
 
   public enum ProcessState
   {
-    NOT_STARTED, WAITING, RUNNING, FINISHED
+    NOT_STARTED, RUNNING, FINISHED
   }
 
   public static final int DEFAULT_WARNING_THRESHOLD_EVENTQUEUE_FULL = 250;
@@ -51,7 +52,7 @@ public abstract class MaloWProcess
   private int warningThresholdEventQueue = DEFAULT_WARNING_THRESHOLD_EVENTQUEUE_FULL;
   private static long nextID = 0;
   private ProcThread thread;
-  private ConcurrentLinkedQueue<ProcessEvent> eventQueue;
+  private BlockingQueue<ProcessEvent> eventQueue;
   private ProcessState state;
   private long id;
   protected boolean stayAlive = true;
@@ -61,7 +62,7 @@ public abstract class MaloWProcess
     this.id = MaloWProcess.nextID;
     MaloWProcess.nextID++;
     this.state = ProcessState.NOT_STARTED;
-    this.eventQueue = new ConcurrentLinkedQueue<ProcessEvent>();
+    this.eventQueue = new LinkedBlockingDeque<ProcessEvent>();
     this.thread = new ProcThread();
   }
 
@@ -109,23 +110,15 @@ public abstract class MaloWProcess
 
   public ProcessEvent waitEvent()
   {
-    if (this.eventQueue.isEmpty())
+    try
     {
-      try
-      {
-        synchronized (this)
-        {
-          this.state = ProcessState.WAITING;
-          this.wait();
-          this.state = ProcessState.RUNNING;
-        }
-      }
-      catch (InterruptedException e)
-      {
-        MaloWLogger.error("waitEvent failed", e);
-      }
+      return this.eventQueue.take();
     }
-    return this.peekEvent();
+    catch (InterruptedException e)
+    {
+      MaloWLogger.error("waitEvent failed", e);
+    }
+    return null;
   }
 
   public ProcessEvent peekEvent()
@@ -141,16 +134,11 @@ public abstract class MaloWProcess
       this.warningThresholdEventQueue *= 2;
       MaloWLogger.warning("Warning, EventQueue of process " + this.id + " has " + this.eventQueue.size() + " unread events.");
     }
-    synchronized (this)
-    {
-      this.notifyAll();
-    }
   }
 
   public void putUnimportantEvent(ProcessEvent ev)
   {
-    int queueSize = this.eventQueue.size();
-    if (queueSize > 20) { return; }
+    if (this.eventQueue.size() > 20) { return; }
     this.putEvent(ev);
   }
 
