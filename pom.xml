@@ -17,10 +17,17 @@
     </plugins>
   </build>
   <dependencies>
+    <!-- For Unit-tests (MaloWProcess) -->
 	<dependency>
     	<groupId>org.mockito</groupId>
     	<artifactId>mockito-all</artifactId>
     	<version>1.9.5</version>
 	</dependency>
+    <!-- For HTTPSClient -->
+  	<dependency>
+  		<groupId>com.mashape.unirest</groupId>
+  		<artifactId>unirest-java</artifactId>
+  		<version>1.4.9</version>
+  	</dependency>
   </dependencies>
 </project>
