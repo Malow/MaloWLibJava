@@ -12,7 +12,7 @@ public class HttpsClient
 {
   private static final HttpsClient INSTANCE = new HttpsClient();
   private static CloseableHttpClient httpclient;
-  private static String host;
+  private static String host = "UNDEFINED";
 
   private HttpsClient()
   {
