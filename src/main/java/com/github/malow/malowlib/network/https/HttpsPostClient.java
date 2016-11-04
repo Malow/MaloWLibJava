@@ -13,7 +13,7 @@ public class HttpsPostClient
 {
   private static final HttpsPostClient INSTANCE = new HttpsPostClient();
   private static CloseableHttpClient httpclient;
-  private static String host;
+  private static String host = "UNDEFINED";
 
   private HttpsPostClient()
   {
