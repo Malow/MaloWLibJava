@@ -1,8 +1,11 @@
-package com.github.malow.malowlib;
+package com.github.malow.malowlib.network;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+
+import com.github.malow.malowlib.MaloWLogger;
+import com.github.malow.malowlib.MaloWProcess;
 
 public abstract class NetworkServer extends MaloWProcess
 {

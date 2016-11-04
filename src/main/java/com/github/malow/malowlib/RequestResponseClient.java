@@ -1,5 +1,8 @@
 package com.github.malow.malowlib;
 
+import com.github.malow.malowlib.network.NetworkChannel;
+import com.github.malow.malowlib.network.NetworkPacket;
+
 public class RequestResponseClient extends MaloWProcess
 {
   private String ip;

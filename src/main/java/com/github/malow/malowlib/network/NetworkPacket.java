@@ -1,4 +1,6 @@
-package com.github.malow.malowlib;
+package com.github.malow.malowlib.network;
+
+import com.github.malow.malowlib.ProcessEvent;
 
 public class NetworkPacket extends ProcessEvent
 {
