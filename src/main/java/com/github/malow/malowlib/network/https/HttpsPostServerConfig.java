@@ -11,6 +11,7 @@ public class HttpsPostServerConfig
   public String sendPwResetTokenPath = "/sendpwresettoken";
   public String resetPwPath = "/resetpw";
   public String clearCachePath = "/clearcache";
+  public boolean useMultipleThreads = false;
 
   public HttpsPostServerConfig(int port, String certificateFilePath, String certificatePassword)
   {

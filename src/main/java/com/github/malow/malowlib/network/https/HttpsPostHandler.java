@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 
+import com.github.malow.malowlib.GsonSingleton;
 import com.github.malow.malowlib.MaloWLogger;
-import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -37,7 +37,7 @@ public abstract class HttpsPostHandler implements HttpHandler
 
   protected static HttpsPostRequest createValidJsonRequest(String request, Class<? extends HttpsPostRequest> c)
   {
-    HttpsPostRequest req = new Gson().fromJson(request, c);
+    HttpsPostRequest req = GsonSingleton.get().fromJson(request, c);
     if (req != null && req.isValid()) return req;
     else return null;
   }

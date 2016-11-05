@@ -3,6 +3,9 @@ package com.github.malow.malowlib.network.https;
 import java.io.FileInputStream;
 import java.net.InetSocketAddress;
 import java.security.KeyStore;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -18,10 +21,11 @@ import com.sun.net.httpserver.HttpsServer;
 public class HttpsPostServer
 {
   private HttpsServer server = null;
+  private ExecutorService executorService = null;
 
   public HttpsPostServer(HttpsPostServerConfig config)
   {
-    this.initHttpsServer(config.port, config.certificateFilePath, config.certificatePassword);
+    this.initHttpsServer(config.port, config.certificateFilePath, config.certificatePassword, config.useMultipleThreads);
   }
 
   public void createContext(String path, HttpsPostHandler handler)
@@ -37,9 +41,24 @@ public class HttpsPostServer
   public void close()
   {
     if (this.server != null) this.server.stop(0);
+    if (this.executorService != null)
+    {
+      this.executorService.shutdown();
+      try
+      {
+        if (!this.executorService.awaitTermination(5000, TimeUnit.MILLISECONDS))
+        {
+          MaloWLogger.error("HttpsPostServer executorService termination timeout reached", new Exception());
+        }
+      }
+      catch (InterruptedException e)
+      {
+        MaloWLogger.error("HttpsPostServer executorService termination failed", e);
+      }
+    }
   }
 
-  public void initHttpsServer(int port, String certificateFilePath, String sslPassword)
+  public void initHttpsServer(int port, String certificateFilePath, String sslPassword, boolean useMultipleThreads)
   {
     try
     {
@@ -75,7 +94,15 @@ public class HttpsPostServer
           }
         }
       });
-      this.server.setExecutor(null); // creates a default executor
+      if (useMultipleThreads)
+      {
+        this.executorService = Executors.newCachedThreadPool();
+        this.server.setExecutor(this.executorService);
+      }
+      else
+      {
+        this.server.setExecutor(null); // creates a default executor
+      }
     }
     catch (Exception e)
     {
