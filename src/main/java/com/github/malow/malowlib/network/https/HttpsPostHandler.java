@@ -12,13 +12,25 @@ import com.sun.net.httpserver.HttpHandler;
 
 public abstract class HttpsPostHandler implements HttpHandler
 {
-  public void handle(HttpExchange t)
+  public static class BadRequestException extends Exception
   {
-    String response = this.handleRequestAndGetResponse(getRequest(t));
-    sendResponse(t, 200, response);
+    private static final long serialVersionUID = 136803662087035484L;
   }
 
-  public abstract String handleRequestAndGetResponse(String request);
+  public void handle(HttpExchange t)
+  {
+    try
+    {
+      String response = this.handleRequestAndGetResponse(getRequest(t));
+      sendResponse(t, 200, response);
+    }
+    catch (BadRequestException e)
+    {
+      sendResponse(t, 400, "{\"result\":false,\"error\":\"400: Bad Request\"}");
+    }
+  }
+
+  public abstract String handleRequestAndGetResponse(String request) throws BadRequestException;
 
   private static void sendResponse(HttpExchange t, int code, String response)
   {
@@ -35,11 +47,11 @@ public abstract class HttpsPostHandler implements HttpHandler
     }
   }
 
-  protected static HttpsPostRequest createValidJsonRequest(String request, Class<? extends HttpsPostRequest> c)
+  protected static HttpsPostRequest createValidJsonRequest(String request, Class<? extends HttpsPostRequest> c) throws BadRequestException
   {
     HttpsPostRequest req = GsonSingleton.get().fromJson(request, c);
     if (req != null && req.isValid()) return req;
-    else return null;
+    else throw new BadRequestException();
   }
 
   private static String getRequest(HttpExchange t)

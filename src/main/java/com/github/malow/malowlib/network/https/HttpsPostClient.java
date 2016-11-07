@@ -11,13 +11,12 @@ import com.mashape.unirest.http.Unirest;
 
 public class HttpsPostClient
 {
-  private static final HttpsPostClient INSTANCE = new HttpsPostClient();
-  private static CloseableHttpClient httpclient;
-  private static String host = "UNDEFINED";
+  private CloseableHttpClient httpclient;
+  private String host = "UNDEFINED";
 
-  private HttpsPostClient()
+  public HttpsPostClient(String host)
   {
-    if (INSTANCE != null) { throw new IllegalStateException("Already instantiated"); }
+    this.host = host;
     this.init();
   }
 
@@ -29,8 +28,8 @@ public class HttpsPostClient
       builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
       @SuppressWarnings("deprecation")
       SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build(), SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-      HttpsPostClient.httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
-      Unirest.setHttpClient(HttpsPostClient.httpclient);
+      this.httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
+      Unirest.setHttpClient(this.httpclient);
     }
     catch (Exception e)
     {
@@ -42,7 +41,7 @@ public class HttpsPostClient
   {
     try
     {
-      HttpsPostClient.httpclient.close();
+      this.httpclient.close();
     }
     catch (Exception e)
     {
@@ -50,13 +49,8 @@ public class HttpsPostClient
     }
   }
 
-  public static String sendMessage(String path, String message) throws Exception
+  public String sendMessage(String path, String message) throws Exception
   {
-    return Unirest.post(HttpsPostClient.host + path).body(message).asJson().getBody().toString();
-  }
-
-  public static void setHost(String host)
-  {
-    HttpsPostClient.host = host;
+    return Unirest.post(this.host + path).body(message).asJson().getBody().toString();
   }
 }
