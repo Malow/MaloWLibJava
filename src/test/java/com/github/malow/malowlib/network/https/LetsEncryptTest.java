@@ -5,9 +5,9 @@ import org.junit.Test;
 public class LetsEncryptTest
 {
   @Test
-  public void test() throws Exception
+  public void testDownloadCertificates() throws Exception
   {
-    String domain = "malow.mooo.com";
+    String domain = "malow.duckdns.org";
     int port = 7777;
 
     LetsEncrypt ct = new LetsEncrypt(domain, port);

@@ -2,15 +2,40 @@ package com.github.malow.malowlib.network.https;
 
 public class HttpsPostServerConfig
 {
+  public static interface SslConfig
+  {
+
+  }
+
+  public static class JksFileConfig implements SslConfig
+  {
+    public String jksFilePath;
+
+    public JksFileConfig(String jksFilePath)
+    {
+      this.jksFilePath = jksFilePath;
+    }
+  }
+
+  public static class LetsEncryptConfig implements SslConfig
+  {
+    public String letsEncryptFolderPath;
+
+    public LetsEncryptConfig(String letsEncryptFolderPath)
+    {
+      this.letsEncryptFolderPath = letsEncryptFolderPath;
+    }
+  }
+
   public int port;
-  public String certificateFilePath;
-  public String certificatePassword;
+  public String sslPassword;
+  public SslConfig sslConfig;
   public boolean useMultipleThreads = false;
 
-  public HttpsPostServerConfig(int port, String certificateFilePath, String certificatePassword)
+  public HttpsPostServerConfig(int port, SslConfig sslConfig, String sslPassword)
   {
     this.port = port;
-    this.certificateFilePath = certificateFilePath;
-    this.certificatePassword = certificatePassword;
+    this.sslConfig = sslConfig;
+    this.sslPassword = sslPassword;
   }
 }

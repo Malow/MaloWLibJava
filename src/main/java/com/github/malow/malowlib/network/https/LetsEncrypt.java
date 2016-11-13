@@ -83,7 +83,8 @@ public class LetsEncrypt
     USER_KEY_FILE.getParentFile().mkdirs();
     Security.addProvider(new BouncyCastleProvider());
     // Use "acme://letsencrypt.org" for production server
-    Session session = new Session("acme://letsencrypt.org/staging", this.getOrCreateKeyPair(USER_KEY_FILE));
+    //Session session = new Session("acme://letsencrypt.org/staging", this.getOrCreateKeyPair(USER_KEY_FILE));
+    Session session = new Session("acme://letsencrypt.org", this.getOrCreateKeyPair(USER_KEY_FILE));
 
     Registration reg = this.getOrCreateRegistration(session);
 
