@@ -34,34 +34,6 @@ public class HttpsPostClient
     {
       if (this.acceptAllSsl)
       {
-        TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager()
-        {
-          @Override
-          public X509Certificate[] getAcceptedIssuers()
-          {
-            return new X509Certificate[0];
-          }
-
-          @Override
-          public void checkClientTrusted(X509Certificate[] certs, String authType)
-          {
-          }
-
-          @Override
-          public void checkServerTrusted(X509Certificate[] certs, String authType)
-          {
-          }
-        } };
-
-        HostnameVerifier hv = new HostnameVerifier()
-        {
-          @Override
-          public boolean verify(String hostname, SSLSession session)
-          {
-            return true;
-          }
-        };
-
         SSLContext sc = SSLContext.getInstance("SSL");
         sc.init(null, trustAllCerts, new SecureRandom());
         this.httpClient = HttpClients.custom().setSSLContext(sc).setSSLHostnameVerifier(hv).build();
@@ -94,4 +66,31 @@ public class HttpsPostClient
   {
     return Unirest.post(this.host + path).body(message).asJson().getBody().toString();
   }
+
+  private static TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager()
+  {
+    @Override
+    public X509Certificate[] getAcceptedIssuers()
+    {
+      return new X509Certificate[0];
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] certs, String authType)
+    {
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] certs, String authType)
+    {
+    }
+  } };
+  private static HostnameVerifier hv = new HostnameVerifier()
+  {
+    @Override
+    public boolean verify(String hostname, SSLSession session)
+    {
+      return true;
+    }
+  };
 }

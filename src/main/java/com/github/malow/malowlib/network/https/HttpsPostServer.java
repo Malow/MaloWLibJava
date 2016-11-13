@@ -1,8 +1,9 @@
 package com.github.malow.malowlib.network.https;
 
 import java.io.FileInputStream;
-import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
@@ -147,26 +148,37 @@ public class HttpsPostServer
 
   private KeyStore getKeyStoreForLetsEncrypt(String sslPassword, String letsEncryptFolderPath) throws Exception
   {
-    KeyPair kp = KeyPairUtils.readKeyPair(new FileReader(letsEncryptFolderPath + "/domain.key"));
-    // add error handling and close much like your getOrCreateKeyPair
+    KeyPair kp;
+    try (InputStreamReader isr = new InputStreamReader(new FileInputStream(letsEncryptFolderPath + "/domain.key"), StandardCharsets.UTF_8))
+    {
+      kp = KeyPairUtils.readKeyPair(isr);
+    }
+
     CertificateFactory cf = CertificateFactory.getInstance("X.509");
-    Certificate cert0 = cf.generateCertificate(new FileInputStream(letsEncryptFolderPath + "/domain.crt"));
-    Certificate cert1 = cf.generateCertificate(new FileInputStream(letsEncryptFolderPath + "/chain.crt"));
-    // add similar error handling and close
+    Certificate cert0;
+    try (FileInputStream cert0Input = new FileInputStream(letsEncryptFolderPath + "/domain.crt"))
+    {
+      cert0 = cf.generateCertificate(cert0Input);
+    }
+    Certificate cert1;
+    try (FileInputStream cert1Input = new FileInputStream(letsEncryptFolderPath + "/chain.crt"))
+    {
+      cert1 = cf.generateCertificate(cert1Input);
+    }
 
     KeyStore ks = KeyStore.getInstance("jks"); // type doesn't really matter since it's in memory only
     ks.load(null);
     ks.setKeyEntry("anyalias", kp.getPrivate(), sslPassword.toCharArray(), new Certificate[] { cert0, cert1 });
-    // now create a KMF and KeyManager from this KeyStore,
-    // optionally a TMF and TrustManager, then SSLContext etc as in your existing code
     return ks;
   }
 
   private KeyStore getKeyStoreForLocalFile(String sslPassword, String certificateFilePath) throws Exception
   {
     KeyStore ks = KeyStore.getInstance("JKS");
-    FileInputStream fis = new FileInputStream(certificateFilePath);
-    ks.load(fis, sslPassword.toCharArray());
+    try (FileInputStream fis = new FileInputStream(certificateFilePath))
+    {
+      ks.load(fis, sslPassword.toCharArray());
+    }
     return ks;
   }
 }

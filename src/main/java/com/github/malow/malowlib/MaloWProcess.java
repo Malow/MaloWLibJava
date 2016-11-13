@@ -5,23 +5,21 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public abstract class MaloWProcess
 {
-
   private class ProcThread extends Thread
   {
-
     @Override
     public void run()
     {
-      state = ProcessState.RUNNING;
-      life();
-      state = ProcessState.FINISHED;
+      MaloWProcess.this.state = ProcessState.RUNNING;
+      MaloWProcess.this.life();
+      MaloWProcess.this.state = ProcessState.FINISHED;
     }
 
     public synchronized void resumeThread()
     {
       try
       {
-        notify();
+        this.notifyAll();
       }
       catch (Exception e)
       {
@@ -33,7 +31,7 @@ public abstract class MaloWProcess
     {
       try
       {
-        wait();
+        this.wait();
       }
       catch (Exception e)
       {
@@ -47,10 +45,16 @@ public abstract class MaloWProcess
     NOT_STARTED, RUNNING, FINISHED
   }
 
+  private static long nextID = 0;
+
+  private static synchronized long getAndIncrementId()
+  {
+    return nextID++;
+  }
+
   public static final int DEFAULT_WARNING_THRESHOLD_EVENTQUEUE_FULL = 250;
   public static final long WAIT_TIMEOUT = 0;
   private int warningThresholdEventQueue = DEFAULT_WARNING_THRESHOLD_EVENTQUEUE_FULL;
-  private static long nextID = 0;
   private ProcThread thread;
   private BlockingQueue<ProcessEvent> eventQueue;
   private ProcessState state;
@@ -59,8 +63,7 @@ public abstract class MaloWProcess
 
   public MaloWProcess()
   {
-    this.id = MaloWProcess.nextID;
-    MaloWProcess.nextID++;
+    this.id = getAndIncrementId();
     this.state = ProcessState.NOT_STARTED;
     this.eventQueue = new LinkedBlockingQueue<ProcessEvent>();
     this.thread = new ProcThread();
@@ -138,7 +141,7 @@ public abstract class MaloWProcess
 
   public void putUnimportantEvent(ProcessEvent ev)
   {
-    if (this.eventQueue.size() > 20) { return; }
+    if (this.eventQueue.size() > 20) return;
     this.putEvent(ev);
   }
 

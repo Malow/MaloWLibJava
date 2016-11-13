@@ -1,13 +1,15 @@
 package com.github.malow.malowlib.network.https;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.Writer;
+import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.X509Certificate;
@@ -73,7 +75,7 @@ public class LetsEncrypt
     {
       t.sendResponseHeaders(200, this.fileContent.length());
       OutputStream os = t.getResponseBody();
-      os.write(this.fileContent.getBytes());
+      os.write(this.fileContent.getBytes(StandardCharsets.UTF_8));
       os.close();
     }
   }
@@ -132,22 +134,23 @@ public class LetsEncrypt
     csrb.addDomain(this.domain);
     csrb.sign(domainKeyPair);
 
-    try (Writer out = new FileWriter(DOMAIN_CSR_FILE))
+    try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(DOMAIN_CSR_FILE), StandardCharsets.UTF_8))
     {
       csrb.write(out);
     }
 
     Certificate certificate = reg.requestCertificate(csrb.getEncoded());
     X509Certificate cert = certificate.download();
-    try (FileWriter fw = new FileWriter(DOMAIN_CERT_FILE))
+
+    try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(DOMAIN_CERT_FILE), StandardCharsets.UTF_8))
     {
-      CertificateUtils.writeX509Certificate(cert, fw);
+      CertificateUtils.writeX509Certificate(cert, out);
     }
 
     X509Certificate[] chain = certificate.downloadChain();
-    try (FileWriter fw = new FileWriter(CERT_CHAIN_FILE))
+    try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(CERT_CHAIN_FILE), StandardCharsets.UTF_8))
     {
-      CertificateUtils.writeX509CertificateChain(chain, fw);
+      CertificateUtils.writeX509CertificateChain(chain, out);
     }
 
     // Revoke the certificate (uncomment if needed...)
@@ -161,17 +164,17 @@ public class LetsEncrypt
     KeyPair keyPair;
     if (file.exists())
     {
-      try (FileReader fr = new FileReader(file))
+      try (InputStreamReader isr = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))
       {
-        keyPair = KeyPairUtils.readKeyPair(fr);
+        keyPair = KeyPairUtils.readKeyPair(isr);
       }
     }
     else
     {
       keyPair = KeyPairUtils.createKeyPair(KEY_SIZE);
-      try (FileWriter fw = new FileWriter(file))
+      try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))
       {
-        KeyPairUtils.writeKeyPair(keyPair, fw);
+        KeyPairUtils.writeKeyPair(keyPair, out);
       }
     }
     return keyPair;

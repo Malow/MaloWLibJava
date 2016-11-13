@@ -1,5 +1,6 @@
 package com.github.malow.malowlib;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -12,7 +13,7 @@ public class MD5Encrypter
     try
     {
       md = MessageDigest.getInstance("MD5");
-      byte[] passBytes = pass.getBytes();
+      byte[] passBytes = pass.getBytes(StandardCharsets.UTF_8);
       md.reset();
       byte[] digested = md.digest(passBytes);
       StringBuffer sb = new StringBuffer();

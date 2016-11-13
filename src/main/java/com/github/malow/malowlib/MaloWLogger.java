@@ -2,6 +2,7 @@ package com.github.malow.malowlib;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -89,13 +90,13 @@ public class MaloWLogger
     if (threshold.level <= LogLevel.ERROR.level)
     {
       LogLevel level = LogLevel.ERROR;
-      msg = msg + "\n    " + e.getClass().getName() + ": " + e.getMessage();
+      StringBuffer buf = new StringBuffer(msg + "\n    " + e.getClass().getName() + ": " + e.getMessage());
       StackTraceElement[] stack = e.getStackTrace();
       for (StackTraceElement element : stack)
       {
-        msg += "\n    " + element.toString();
+        buf.append("\n    " + element.toString());
       }
-      log(level, msg);
+      log(level, buf.toString());
     }
   }
 
@@ -127,7 +128,7 @@ public class MaloWLogger
     try
     {
       new File(FOLDER + fileName).getParentFile().mkdirs();
-      Files.write(Paths.get(FOLDER + fileName), msg.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+      Files.write(Paths.get(FOLDER + fileName), msg.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
     }
     catch (IOException e)
     {

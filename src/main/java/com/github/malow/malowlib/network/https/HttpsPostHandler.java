@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 import com.github.malow.malowlib.GsonSingleton;
 import com.github.malow.malowlib.MaloWLogger;
@@ -17,6 +18,7 @@ public abstract class HttpsPostHandler implements HttpHandler
     private static final long serialVersionUID = 136803662087035484L;
   }
 
+  @Override
   public void handle(HttpExchange t)
   {
     try
@@ -36,9 +38,9 @@ public abstract class HttpsPostHandler implements HttpHandler
   {
     try
     {
-      t.sendResponseHeaders(code, response.getBytes().length);
+      t.sendResponseHeaders(code, response.getBytes(StandardCharsets.UTF_8).length);
       OutputStream os = t.getResponseBody();
-      os.write(response.getBytes());
+      os.write(response.getBytes(StandardCharsets.UTF_8));
       os.close();
     }
     catch (IOException e)
@@ -50,25 +52,21 @@ public abstract class HttpsPostHandler implements HttpHandler
   protected static HttpsPostRequest createValidJsonRequest(String request, Class<? extends HttpsPostRequest> c) throws BadRequestException
   {
     HttpsPostRequest req = GsonSingleton.get().fromJson(request, c);
-    if (req != null && req.isValid()) return req;
+    if ((req != null) && req.isValid()) return req;
     else throw new BadRequestException();
   }
 
   private static String getRequest(HttpExchange t)
   {
     String msg = "";
-    try
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(t.getRequestBody(), "utf-8")))
     {
-      InputStreamReader isr = new InputStreamReader(t.getRequestBody(), "utf-8");
-      BufferedReader br = new BufferedReader(isr);
       int b;
       StringBuilder buf = new StringBuilder();
       while ((b = br.read()) != -1)
       {
         buf.append((char) b);
       }
-      br.close();
-      isr.close();
       msg = buf.toString();
       return msg;
     }
