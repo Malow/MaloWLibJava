@@ -80,7 +80,7 @@ public class MaloWProcessTest
         long nr = RandomNumberGenerator.getRandomInt(0, 10);
         this.myCount += nr;
         DataPacket dp = new DataPacket(nr);
-        target.putEvent(dp);
+        this.target.putEvent(dp);
       }
     }
 

@@ -7,6 +7,11 @@ public abstract class MaloWProcess
 {
   private class ProcThread extends Thread
   {
+    public ProcThread(String processName)
+    {
+      super(processName);
+    }
+
     @Override
     public void run()
     {
@@ -60,13 +65,25 @@ public abstract class MaloWProcess
   private ProcessState state;
   private long id;
   protected boolean stayAlive = true;
+  private String processName;
 
   public MaloWProcess()
   {
+    this.create(this.getClass().getSimpleName());
+  }
+
+  public MaloWProcess(String processName)
+  {
+    this.create(processName);
+  }
+
+  private void create(String processName)
+  {
     this.id = getAndIncrementId();
+    this.processName = "MP:" + processName + "#" + this.id;
     this.state = ProcessState.NOT_STARTED;
     this.eventQueue = new LinkedBlockingQueue<ProcessEvent>();
-    this.thread = new ProcThread();
+    this.thread = new ProcThread(this.processName);
   }
 
   public abstract void life();
@@ -107,7 +124,7 @@ public abstract class MaloWProcess
     }
     catch (InterruptedException e)
     {
-      MaloWLogger.error("waitUntillDone failed", e);
+      MaloWLogger.error("waitUntillDone failed for process " + this.processName, e);
     }
   }
 
@@ -119,7 +136,7 @@ public abstract class MaloWProcess
     }
     catch (InterruptedException e)
     {
-      MaloWLogger.error("waitEvent failed", e);
+      MaloWLogger.error("waitEvent failed for process " + this.processName, e);
     }
     return null;
   }
@@ -135,7 +152,7 @@ public abstract class MaloWProcess
     if (this.eventQueue.size() > this.warningThresholdEventQueue)
     {
       this.warningThresholdEventQueue *= 2;
-      MaloWLogger.warning("Warning, EventQueue of process " + this.id + " has " + this.eventQueue.size() + " unread events.");
+      MaloWLogger.warning("Warning, EventQueue of process " + this.processName + " has " + this.eventQueue.size() + " unread events.");
     }
   }
 
