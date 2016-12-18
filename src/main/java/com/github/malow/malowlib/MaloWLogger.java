@@ -16,15 +16,18 @@ public class MaloWLogger
 {
 
   private static final String FOLDER = "logs/";
-  private static final String ALL_FILE = "all.log";
   private static LogLevel threshold = LogLevel.INFO;
+  private static boolean enabled = true;
   private static boolean logToFile = true;
   private static boolean logToSyso = true;
   private static boolean logToSpecificFiles = true;
 
-  public enum LogLevel
+  private enum LogLevel
   {
-    INFO("INFO", "info.log", 0), WARNING("WARNING", "warning.log", 1), ERROR("ERROR", "error.log", 2), NONE("NONE", "", 1000);
+    ALL("ALL", "all.log", -1),
+    INFO("INFO", "info.log", 0),
+    WARNING("WARNING", "warning.log", 1),
+    ERROR("ERROR", "error.log", 2);
 
     public final String name;
     public final String fileName;
@@ -40,121 +43,135 @@ public class MaloWLogger
 
   static
   {
-    writeToFile(ALL_FILE, "\n-----------------------------------\n");
+    writeToFile(LogLevel.ALL.fileName, "\n-----------------------------------\n");
     writeToFile(LogLevel.INFO.fileName, "\n-----------------------------------\n");
     writeToFile(LogLevel.WARNING.fileName, "\n-----------------------------------\n");
     writeToFile(LogLevel.ERROR.fileName, "\n-----------------------------------\n");
-    logSpecificLevel(ALL_FILE, "MaloWLogger: Application Launch", true);
-    logSpecificLevel(LogLevel.INFO.fileName, "MaloWLogger: Application Launch", true);
-    logSpecificLevel(LogLevel.WARNING.fileName, "MaloWLogger: Application Launch", true);
-    logSpecificLevel(LogLevel.ERROR.fileName, "MaloWLogger: Application Launch", true);
+    logForAllLevels("MaloWLogger: Application Launch", true);
   }
 
-  public static void setLoggingThreshold(LogLevel level)
+  public static void disableLogging()
+  {
+    enabled = false;
+    logForAllLevels("MaloWLogger: Logging disabled.", true);
+  }
+
+  public static void enableLogging()
+  {
+    enabled = true;
+    logForAllLevels("MaloWLogger: Logging re-enabled.", true);
+  }
+
+  public static void setLoggingThresholdToInfo()
+  {
+    setLoggingThreshold(LogLevel.INFO);
+  }
+
+  public static void setLoggingThresholdToWarning()
+  {
+    setLoggingThreshold(LogLevel.WARNING);
+  }
+
+  public static void setLoggingThresholdToError()
+  {
+    setLoggingThreshold(LogLevel.ERROR);
+  }
+
+  private static void setLoggingThreshold(LogLevel level)
   {
     threshold = level;
-    String msg = "MaloWLogger: Logging Threshold set to " + level.name + ". ";
-    logSpecificLevel(ALL_FILE, msg, true);
-    logSpecificLevel(LogLevel.INFO.fileName, msg, true);
-    logSpecificLevel(LogLevel.WARNING.fileName, msg, true);
-    logSpecificLevel(LogLevel.ERROR.fileName, msg, true);
+    logForAllLevels("MaloWLogger: Logging Threshold set to " + threshold.name + ". ", true);
   }
 
-  public static void setLogToFile(boolean val)
+  public static void disableLoggingToFiles()
   {
-    logToFile = val;
-    String msg = "";
-    if (val == false)
-    {
-      msg = "MaloWLogger: Logging to files disabled.";
-    }
-    else
-    {
-      msg = "MaloWLogger: Logging to files re-enabled.";
-    }
-    logSpecificLevel(ALL_FILE, msg, true);
-    logSpecificLevel(LogLevel.INFO.fileName, msg, true);
-    logSpecificLevel(LogLevel.WARNING.fileName, msg, true);
-    logSpecificLevel(LogLevel.ERROR.fileName, msg, true);
+    logToFile = false;
+    logForAllLevels("MaloWLogger: Logging to files disabled.", true);
   }
 
-  public static void setLogToSyso(boolean val)
+  public static void enableLoggingToFiles()
   {
-    logToSyso = val;
-    if (val == false)
-    {
-      System.out.println(getCurrentDateTime() + " - " + "MaloWLogger: Logging to system-out disabled.");
-    }
-    else
-    {
-      System.out.println(getCurrentDateTime() + " - " + "MaloWLogger: Logging to system-out re-enabled.");
-    }
+    logToFile = true;
+    logForAllLevels("MaloWLogger: Logging to files re-enabled.", true);
   }
 
-  public static void setLogToSpecificFiles(boolean val)
+  public static void disableLoggingToSyso()
   {
-    logToSpecificFiles = val;
-    String msg = "";
-    if (val == false)
-    {
-      msg = "MaloWLogger: Logging to specific files for different log levels disabled, see " + ALL_FILE + " for the combined output of every level.";
-    }
-    else
-    {
-      msg = "MaloWLogger: Logging to specific files for different log levels re-enabled.";
-    }
-    logSpecificLevel(LogLevel.INFO.fileName, msg, true);
-    logSpecificLevel(LogLevel.WARNING.fileName, msg, true);
-    logSpecificLevel(LogLevel.ERROR.fileName, msg, true);
+    logToSyso = false;
+    System.out.println(getCurrentDateTime() + " - " + "MaloWLogger: Logging to system-out disabled.");
+  }
+
+  public static void enableLoggingToSyso()
+  {
+    logToSyso = true;
+    System.out.println(getCurrentDateTime() + " - " + "MaloWLogger: Logging to system-out re-enabled.");
+  }
+
+  public static void disableLoggingToSpecificFiles()
+  {
+    logToSpecificFiles = false;
+    String msg = "MaloWLogger: Logging to specific files for different log levels disabled, see " + LogLevel.ALL.fileName
+        + " for the combined output of every level.";
+    logForSpecificLevel(LogLevel.INFO, msg, true);
+    logForSpecificLevel(LogLevel.WARNING, msg, true);
+    logForSpecificLevel(LogLevel.ERROR, msg, true);
+  }
+
+  public static void enableLoggingToSpecificFiles()
+  {
+    logToSpecificFiles = true;
+    String msg = "MaloWLogger: Logging to specific files for different log levels re-enabled.";
+    logForSpecificLevel(LogLevel.INFO, msg, true);
+    logForSpecificLevel(LogLevel.WARNING, msg, true);
+    logForSpecificLevel(LogLevel.ERROR, msg, true);
   }
 
   public static void info(String msg)
   {
-    if (threshold.level <= LogLevel.INFO.level)
-    {
-      LogLevel level = LogLevel.INFO;
-      log(level, msg);
-    }
+    log(LogLevel.INFO, msg);
   }
 
   public static void warning(String msg)
   {
-    if (threshold.level <= LogLevel.WARNING.level)
-    {
-      LogLevel level = LogLevel.WARNING;
-      log(level, msg);
-    }
+    log(LogLevel.WARNING, msg);
   }
 
   public static void error(String msg, Exception e)
   {
-    if (threshold.level <= LogLevel.ERROR.level)
-    {
-      LogLevel level = LogLevel.ERROR;
-      log(level, getStringForException(msg, e));
-    }
+    log(LogLevel.ERROR, getStringForException(msg, e));
   }
 
   private static void log(LogLevel level, String msg)
   {
-    logSpecificLevel(ALL_FILE, level.name + ": " + msg, false);
-    if (logToSpecificFiles)
+    if (enabled && (threshold.level <= level.level))
     {
-      logSpecificLevel(level.fileName, msg, false);
+      logForSpecificLevel(LogLevel.ALL, level.name + ": " + msg, false);
+      if (logToSpecificFiles)
+      {
+        logForSpecificLevel(level, msg, false);
+      }
     }
   }
 
-  private static void logSpecificLevel(String fileName, String msg, boolean force)
+  private static void logForAllLevels(String msg, boolean force)
+  {
+    logForSpecificLevel(LogLevel.ALL, msg, true);
+    logForSpecificLevel(LogLevel.INFO, msg, true);
+    logForSpecificLevel(LogLevel.WARNING, msg, true);
+    logForSpecificLevel(LogLevel.ERROR, msg, true);
+  }
+
+  private static void logForSpecificLevel(LogLevel level, String msg, boolean force)
   {
     msg = getCurrentDateTime() + " - " + msg;
-    if (logToSyso && fileName.equals(ALL_FILE))
+    if ((logToSyso || force) && level.equals(LogLevel.ALL))
     {
       System.out.println(msg);
     }
     if (logToFile || force)
     {
       msg += "\n";
-      writeToFile(fileName, msg);
+      writeToFile(level.fileName, msg);
     }
   }
 
