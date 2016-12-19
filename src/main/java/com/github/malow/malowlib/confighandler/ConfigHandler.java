@@ -26,33 +26,18 @@ import com.github.malow.malowlib.MaloWLogger;
 
 public class ConfigHandler
 {
-
   public static class ConfigException extends Exception
   {
     private static final long serialVersionUID = -5027117305820979723L;
-    public String error = null;
 
     public ConfigException(String error, Exception cause)
     {
-      this(error);
-      this.initCause(cause);
+      super(error, cause);
     }
 
     public ConfigException(String error)
     {
-      this.error = error;
-    }
-
-    @Override
-    public String toString()
-    {
-      return this.error;
-    }
-
-    @Override
-    public String getMessage()
-    {
-      return this.error;
+      super(error);
     }
   }
 
