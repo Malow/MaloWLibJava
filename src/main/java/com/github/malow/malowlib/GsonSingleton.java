@@ -1,5 +1,7 @@
 package com.github.malow.malowlib;
 
+import java.lang.reflect.Type;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -26,5 +28,10 @@ public class GsonSingleton
   public static <T> T fromJson(String json, Class<T> targetClass)
   {
     return gson.fromJson(json, targetClass);
+  }
+
+  public static <T> T fromJson(String json, Type type)
+  {
+    return gson.fromJson(json, type);
   }
 }
