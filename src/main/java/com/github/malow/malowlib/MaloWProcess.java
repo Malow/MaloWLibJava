@@ -16,7 +16,14 @@ public abstract class MaloWProcess
     public void run()
     {
       MaloWProcess.this.state = ProcessState.RUNNING;
-      MaloWProcess.this.life();
+      try
+      {
+        MaloWProcess.this.life();
+      }
+      catch (Exception e)
+      {
+        MaloWLogger.error("Uncaught unchecked Exception in MaloWProcess:Life method in thread " + this.getName(), e);
+      }
       MaloWProcess.this.state = ProcessState.FINISHED;
     }
 
@@ -47,7 +54,9 @@ public abstract class MaloWProcess
 
   public enum ProcessState
   {
-    NOT_STARTED, RUNNING, FINISHED
+    NOT_STARTED,
+    RUNNING,
+    FINISHED
   }
 
   private static long nextID = 0;
@@ -57,14 +66,15 @@ public abstract class MaloWProcess
     return nextID++;
   }
 
-  public static final int DEFAULT_WARNING_THRESHOLD_EVENTQUEUE_FULL = 250;
-  public static final long WAIT_TIMEOUT = 0;
-  private int warningThresholdEventQueue = DEFAULT_WARNING_THRESHOLD_EVENTQUEUE_FULL;
+  public static int DEFAULT_WARNING_THRESHOLD_EVENTQUEUE_FULL = 100;
+  public int warningThresholdEventQueue = DEFAULT_WARNING_THRESHOLD_EVENTQUEUE_FULL;
+  public int unimportantEventThreshold = 10;
+
+  protected boolean stayAlive = true;
   private ProcThread thread;
   private BlockingQueue<ProcessEvent> eventQueue;
   private ProcessState state;
   private long id;
-  protected boolean stayAlive = true;
   private String processName;
 
   public MaloWProcess()
@@ -80,7 +90,7 @@ public abstract class MaloWProcess
   private void create(String processName)
   {
     this.id = getAndIncrementId();
-    this.processName = "MP:" + processName + "#" + this.id;
+    this.processName = "MalowProcess:" + processName + "#" + this.id;
     this.state = ProcessState.NOT_STARTED;
     this.eventQueue = new LinkedBlockingQueue<ProcessEvent>();
     this.thread = new ProcThread(this.processName);
@@ -158,7 +168,7 @@ public abstract class MaloWProcess
 
   public void putUnimportantEvent(ProcessEvent ev)
   {
-    if (this.eventQueue.size() > 20) return;
+    if (this.eventQueue.size() > this.unimportantEventThreshold) return;
     this.putEvent(ev);
   }
 
