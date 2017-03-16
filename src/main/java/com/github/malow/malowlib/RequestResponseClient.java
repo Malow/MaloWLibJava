@@ -25,7 +25,7 @@ public class RequestResponseClient extends MaloWProcess
 
   public String sendAndReceive(String msg) throws ConnectionBrokenException
   {
-    if (!this.isAlive()) { throw new ConnectionBrokenException(); }
+    if (!this.isAlive()) throw new ConnectionBrokenException();
 
     this.nc.sendData(msg);
 
@@ -54,9 +54,9 @@ public class RequestResponseClient extends MaloWProcess
   @Override
   public void life()
   {
-    nc = new NetworkChannel(ip, port);
-    nc.setNotifier(this);
-    nc.start();
+    this.nc = new NetworkChannel(this.ip, this.port);
+    this.nc.setNotifier(this);
+    this.nc.start();
 
     while (this.stayAlive)
     {

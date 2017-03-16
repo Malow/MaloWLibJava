@@ -49,7 +49,10 @@ public abstract class NetworkServer extends MaloWProcess
     while (this.stayAlive)
     {
       NetworkChannel nc = this.listenForNewClients();
-      if (nc != null && this.stayAlive) this.clientConnected(nc);
+      if ((nc != null) && this.stayAlive)
+      {
+        this.clientConnected(nc);
+      }
     }
   }
 

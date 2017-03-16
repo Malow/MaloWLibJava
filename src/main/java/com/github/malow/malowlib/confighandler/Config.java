@@ -6,23 +6,25 @@ import java.util.Map;
 
 public abstract class Config
 {
-  Config()
-  {
 
+  public Config()
+  {
   }
 
-  Map<String, String> configHeader = this.createHeader();
+  public Map<String, String> configHeader = this.createHeader();
 
-  String getName()
+  public String getName()
   {
     return this.getClass().getSimpleName();
   }
 
-  abstract String getVersion();
+  public abstract String getVersion();
 
-  abstract Class<?> getNextVersionClass();
+  public abstract Class<?> getNextVersionClass();
 
-  abstract Class<?> getPreviousVersionClass();
+  public abstract Class<?> getPreviousVersionClass();
+
+  public abstract void upgradeTranslation(Config oldVersion);
 
   private Map<String, String> createHeader()
   {
@@ -32,7 +34,7 @@ public abstract class Config
     return ret;
   }
 
-  void upgrade(Config oldVersion)
+  public void upgrade(Config oldVersion)
   {
     this.straightCopy(oldVersion);
     this.upgradeTranslation(oldVersion);
@@ -48,10 +50,7 @@ public abstract class Config
       }
       catch (Exception e)
       {
-
       }
     }
   }
-
-  abstract void upgradeTranslation(Config oldVersion);
 }
