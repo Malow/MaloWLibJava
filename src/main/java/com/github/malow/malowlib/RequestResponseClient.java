@@ -1,5 +1,7 @@
 package com.github.malow.malowlib;
 
+import com.github.malow.malowlib.malowprocess.MaloWProcess;
+import com.github.malow.malowlib.malowprocess.ProcessEvent;
 import com.github.malow.malowlib.network.NetworkChannel;
 import com.github.malow.malowlib.network.NetworkPacket;
 

@@ -6,15 +6,13 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 
-import com.github.malow.malowlib.MaloWProcess;
-import com.github.malow.malowlib.ProcessEvent;
+import com.github.malow.malowlib.malowprocess.MaloWProcess;
+import com.github.malow.malowlib.malowprocess.ProcessEvent;
 
 public class MatchmakingEngineTestFixture
 {
-
   public static class TestListener extends MaloWProcess
   {
-
     public List<MatchmakingResult> matches = new ArrayList<>();
 
     @Override

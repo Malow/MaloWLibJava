@@ -5,7 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import com.github.malow.malowlib.MaloWLogger;
-import com.github.malow.malowlib.MaloWProcess;
+import com.github.malow.malowlib.malowprocess.MaloWProcess;
 
 public abstract class NetworkServer extends MaloWProcess
 {

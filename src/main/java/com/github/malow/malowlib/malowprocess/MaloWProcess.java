@@ -1,7 +1,9 @@
-package com.github.malow.malowlib;
+package com.github.malow.malowlib.malowprocess;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import com.github.malow.malowlib.MaloWLogger;
 
 public abstract class MaloWProcess
 {

@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.net.Socket;
 
 import com.github.malow.malowlib.MaloWLogger;
-import com.github.malow.malowlib.MaloWProcess;
-import com.github.malow.malowlib.ProcessEvent;
+import com.github.malow.malowlib.malowprocess.MaloWProcess;
+import com.github.malow.malowlib.malowprocess.ProcessEvent;
 
 public class NetworkChannel extends MaloWProcess
 {

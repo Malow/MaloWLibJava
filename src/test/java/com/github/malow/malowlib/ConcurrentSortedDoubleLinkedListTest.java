@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.malow.malowlib.ConcurrentSortedDoubleLinkedList.Node;
+import com.github.malow.malowlib.malowprocess.MaloWProcess;
 
 public class ConcurrentSortedDoubleLinkedListTest
 {

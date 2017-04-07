@@ -1,6 +1,6 @@
 package com.github.malow.malowlib.matchmakingengine;
 
-import com.github.malow.malowlib.ProcessEvent;
+import com.github.malow.malowlib.malowprocess.ProcessEvent;
 
 public class MatchFoundEvent extends ProcessEvent
 {

@@ -3,8 +3,8 @@ package com.github.malow.malowlib.matchmakingengine;
 import java.util.List;
 
 import com.github.malow.malowlib.MaloWLogger;
-import com.github.malow.malowlib.MaloWProcess;
-import com.github.malow.malowlib.ProcessEvent;
+import com.github.malow.malowlib.malowprocess.MaloWProcess;
+import com.github.malow.malowlib.malowprocess.ProcessEvent;
 
 public class MatchmakingEngine extends MaloWProcess
 {
