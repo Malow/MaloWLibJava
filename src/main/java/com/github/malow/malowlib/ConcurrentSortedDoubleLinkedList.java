@@ -8,7 +8,6 @@ public class ConcurrentSortedDoubleLinkedList<T extends Comparable<T>>
 
   public static class Node<T>
   {
-
     public Optional<Node<T>> previous = Optional.empty();
     public Optional<Node<T>> next = Optional.empty();
     public T item;
@@ -45,7 +44,7 @@ public class ConcurrentSortedDoubleLinkedList<T extends Comparable<T>>
 
   protected void unlock()
   {
-    this.lock.lock();
+    this.lock.unlock();
   }
 
   public int getSize()
@@ -59,7 +58,7 @@ public class ConcurrentSortedDoubleLinkedList<T extends Comparable<T>>
     this.size++;
     if (this.first.isPresent())
     {
-      this.insertSortedRecursive(this.first.get(), item);
+      this.insertSorted(item);
     }
     else
     {
@@ -71,7 +70,7 @@ public class ConcurrentSortedDoubleLinkedList<T extends Comparable<T>>
   public boolean remove(T item)
   {
     this.lock();
-    Optional<Node<T>> result = this.searchRecursive(this.first, item);
+    Optional<Node<T>> result = this.search(item);
     if (result.isPresent())
     {
       Node<T> toRemove = result.get();
@@ -108,6 +107,8 @@ public class ConcurrentSortedDoubleLinkedList<T extends Comparable<T>>
     this.size--;
   }
 
+  // Non-recursive is faster, so this has been deprecated.
+  @SuppressWarnings("unused")
   private Optional<Node<T>> searchRecursive(Optional<Node<T>> current, T item)
   {
     if (current.isPresent())
@@ -118,6 +119,19 @@ public class ConcurrentSortedDoubleLinkedList<T extends Comparable<T>>
     return Optional.empty();
   }
 
+  private Optional<Node<T>> search(T item)
+  {
+    Optional<Node<T>> current = this.first;
+    while (current.isPresent())
+    {
+      if (current.get().item.equals(item)) return current;
+      current = current.get().next;
+    }
+    return Optional.empty();
+  }
+
+  // Non-recursive is faster, so this has been deprecated.
+  @SuppressWarnings("unused")
   private void insertSortedRecursive(Node<T> current, T item)
   {
     if (item.compareTo(current.item) > 0)
@@ -150,21 +164,51 @@ public class ConcurrentSortedDoubleLinkedList<T extends Comparable<T>>
     }
   }
 
+  private void insertSorted(T item)
+  {
+    Node<T> newNode = new Node<T>(item);
+    Optional<Node<T>> current = this.first;
+    while (current.isPresent())
+    {
+      if (item.compareTo(current.get().item) > 0)
+      {
+        if (!current.get().next.isPresent())
+        {
+          current.get().next = Optional.of(newNode);
+          newNode.previous = current;
+          return;
+        }
+      }
+      else
+      {
+        newNode.next = current;
+        if (current.get().previous.isPresent())
+        {
+          newNode.previous = current.get().previous;
+          current.get().previous.get().next = Optional.of(newNode);
+        }
+        else
+        {
+          this.first = Optional.of(newNode);
+        }
+        current.get().previous = Optional.of(newNode);
+        return;
+      }
+      current = current.get().next;
+    }
+
+  }
+
   @Override
   public String toString()
   {
-    String str = "";
-    str += this.toStringRecursive(this.first);
-    return str;
-  }
-
-  private String toStringRecursive(Optional<Node<T>> current)
-  {
-    if (current.isPresent())
+    StringBuilder builder = new StringBuilder();
+    Optional<Node<T>> current = this.first;
+    while (current.isPresent())
     {
-      String str = current.get().toString() + "\n";
-      return str + this.toStringRecursive(current.get().next);
+      builder.append(current.get().toString() + "\n");
+      current = current.get().next;
     }
-    return "";
+    return builder.toString();
   }
 }
