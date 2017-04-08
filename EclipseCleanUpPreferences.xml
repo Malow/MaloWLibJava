@@ -15,11 +15,11 @@
 <setting id="cleanup.always_use_this_for_non_static_field_access" value="true"/>
 <setting id="cleanup.remove_trailing_whitespaces_ignore_empty" value="false"/>
 <setting id="cleanup.correct_indentation" value="true"/>
-<setting id="cleanup.never_use_parentheses_in_expressions" value="false"/>
+<setting id="cleanup.never_use_parentheses_in_expressions" value="true"/>
 <setting id="cleanup.add_serial_version_id" value="true"/>
 <setting id="cleanup.remove_unused_private_methods" value="true"/>
 <setting id="cleanup.use_this_for_non_static_field_access" value="true"/>
-<setting id="cleanup.use_blocks_only_for_return_and_throw" value="true"/>
+<setting id="cleanup.use_blocks_only_for_return_and_throw" value="false"/>
 <setting id="cleanup.remove_unused_private_members" value="false"/>
 <setting id="cleanup.add_missing_override_annotations_interface_methods" value="true"/>
 <setting id="cleanup.remove_trailing_whitespaces_all" value="true"/>
@@ -44,10 +44,10 @@
 <setting id="cleanup.sort_members" value="false"/>
 <setting id="cleanup.remove_private_constructors" value="true"/>
 <setting id="cleanup.convert_to_enhanced_for_loop" value="false"/>
-<setting id="cleanup.always_use_blocks" value="false"/>
+<setting id="cleanup.always_use_blocks" value="true"/>
 <setting id="cleanup.never_use_blocks" value="false"/>
 <setting id="cleanup.use_lambda" value="true"/>
-<setting id="cleanup.always_use_parentheses_in_expressions" value="true"/>
+<setting id="cleanup.always_use_parentheses_in_expressions" value="false"/>
 <setting id="cleanup.use_this_for_non_static_method_access" value="true"/>
 <setting id="cleanup.remove_unused_local_variables" value="false"/>
 <setting id="cleanup.make_private_fields_final" value="true"/>
