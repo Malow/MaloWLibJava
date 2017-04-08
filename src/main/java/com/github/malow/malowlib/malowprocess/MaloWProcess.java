@@ -170,7 +170,10 @@ public abstract class MaloWProcess
 
   public void putUnimportantEvent(ProcessEvent ev)
   {
-    if (this.eventQueue.size() > this.unimportantEventThreshold) return;
+    if (this.eventQueue.size() > this.unimportantEventThreshold)
+    {
+      return;
+    }
     this.putEvent(ev);
   }
 

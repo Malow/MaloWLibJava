@@ -113,7 +113,10 @@ public class ConcurrentSortedDoubleLinkedList<T extends Comparable<T>>
   {
     if (current.isPresent())
     {
-      if (current.get().item.equals(item)) return current;
+      if (current.get().item.equals(item))
+      {
+        return current;
+      }
       return this.searchRecursive(current.get().next, item);
     }
     return Optional.empty();
@@ -124,7 +127,10 @@ public class ConcurrentSortedDoubleLinkedList<T extends Comparable<T>>
     Optional<Node<T>> current = this.first;
     while (current.isPresent())
     {
-      if (current.get().item.equals(item)) return current;
+      if (current.get().item.equals(item))
+      {
+        return current;
+      }
       current = current.get().next;
     }
     return Optional.empty();

@@ -53,12 +53,15 @@ public class PlayerPool extends ConcurrentSortedDoubleLinkedList<MatchmakingPlay
   private boolean isSuitableMatch(MatchmakingPlayer current, MatchmakingPlayer previous)
   {
     double maxRatingDifference = this.getMaxRatingDifferenceForSearch(System.currentTimeMillis() - Math.min(current.timeAdded, previous.timeAdded));
-    if ((previous.rating + maxRatingDifference) > current.rating) return true;
+    if (previous.rating + maxRatingDifference > current.rating)
+    {
+      return true;
+    }
     return false;
   }
 
   private double getMaxRatingDifferenceForSearch(Long timeSinceSearchStart)
   {
-    return this.config.initialRatingDifference + (timeSinceSearchStart * (this.config.ratingDifferenceIncreasePerSecond / 1000.0));
+    return this.config.initialRatingDifference + timeSinceSearchStart * (this.config.ratingDifferenceIncreasePerSecond / 1000.0);
   }
 }

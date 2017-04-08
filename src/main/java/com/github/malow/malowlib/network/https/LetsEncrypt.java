@@ -96,7 +96,10 @@ public class LetsEncrypt
     Authorization auth = this.createAuthorization(this.domain, reg, agreement);
 
     Http01Challenge challenge = this.createChallange(this.domain, auth);
-    if (challenge == null) return;
+    if (challenge == null)
+    {
+      return;
+    }
 
     // Setup HTTP server for the challange
     String fileName = challenge.getToken();
@@ -105,7 +108,7 @@ public class LetsEncrypt
 
     challenge.trigger();
     int attempts = 10;
-    while ((challenge.getStatus() != Status.VALID) && (attempts-- > 0))
+    while (challenge.getStatus() != Status.VALID && attempts-- > 0)
     {
       if (challenge.getStatus() == Status.INVALID)
       {

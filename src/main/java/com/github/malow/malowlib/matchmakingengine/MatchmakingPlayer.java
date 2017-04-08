@@ -28,22 +28,37 @@ public class MatchmakingPlayer implements Comparable<MatchmakingPlayer>
   {
     final int prime = 31;
     int result = 1;
-    result = (prime * result) + ((this.playerId == null) ? 0 : this.playerId.hashCode());
+    result = prime * result + (this.playerId == null ? 0 : this.playerId.hashCode());
     return result;
   }
 
   @Override
   public boolean equals(Object obj)
   {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (this.getClass() != obj.getClass()) return false;
+    if (this == obj)
+    {
+      return true;
+    }
+    if (obj == null)
+    {
+      return false;
+    }
+    if (this.getClass() != obj.getClass())
+    {
+      return false;
+    }
     MatchmakingPlayer other = (MatchmakingPlayer) obj;
     if (this.playerId == null)
     {
-      if (other.playerId != null) return false;
+      if (other.playerId != null)
+      {
+        return false;
+      }
     }
-    else if (!this.playerId.equals(other.playerId)) return false;
+    else if (!this.playerId.equals(other.playerId))
+    {
+      return false;
+    }
     return true;
   }
 

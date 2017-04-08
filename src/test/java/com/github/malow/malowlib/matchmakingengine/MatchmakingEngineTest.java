@@ -23,7 +23,7 @@ public class MatchmakingEngineTest extends MatchmakingEngineTestFixture
     this.matchmakingEngine.enqueue(1L, 115.0);
     Thread.sleep(20);
     assertThat(this.matchmakingEngine.getPlayersInQueue()).isEqualTo(2);
-    while (this.testListener.matches.isEmpty() && (timeElapsed < 600))
+    while (this.testListener.matches.isEmpty() && timeElapsed < 600)
     {
       Thread.sleep(10);
       timeElapsed = System.currentTimeMillis() - startTime;
@@ -49,7 +49,7 @@ public class MatchmakingEngineTest extends MatchmakingEngineTestFixture
     this.matchmakingEngine.enqueue(1L, 120.0);
     Thread.sleep(20);
     assertThat(this.matchmakingEngine.getPlayersInQueue()).isEqualTo(2);
-    while (this.testListener.matches.isEmpty() && (timeElapsed < 600))
+    while (this.testListener.matches.isEmpty() && timeElapsed < 600)
     {
       Thread.sleep(10);
       timeElapsed = System.currentTimeMillis() - startTime;
@@ -74,7 +74,7 @@ public class MatchmakingEngineTest extends MatchmakingEngineTestFixture
     this.matchmakingEngine.enqueue(1L, 120.0);
     Thread.sleep(20);
     assertThat(this.matchmakingEngine.getPlayersInQueue()).isEqualTo(2);
-    while (this.testListener.matches.isEmpty() && (timeElapsed < 1100))
+    while (this.testListener.matches.isEmpty() && timeElapsed < 1100)
     {
       Thread.sleep(10);
       timeElapsed = System.currentTimeMillis() - startTime;

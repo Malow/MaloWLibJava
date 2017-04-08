@@ -29,7 +29,7 @@ public class MatchmakingEngineSimulation extends MatchmakingEngineTestFixture
       this.matchmakingEngine.enqueue(l, 1500.0 + generateRandom(1000));
     }
     Thread.sleep(100);
-    while ((this.matchmakingEngine.getPlayersInQueue() > 0) && (timeElapsed < TIMEOUT))
+    while (this.matchmakingEngine.getPlayersInQueue() > 0 && timeElapsed < TIMEOUT)
     {
       Thread.sleep(10);
       timeElapsed = System.currentTimeMillis() - startTime;
@@ -52,6 +52,6 @@ public class MatchmakingEngineSimulation extends MatchmakingEngineTestFixture
 
   public static double generateRandom(int maxAndMin)
   {
-    return (randomGenerator.nextDouble() * maxAndMin) - (maxAndMin / 2);
+    return randomGenerator.nextDouble() * maxAndMin - maxAndMin / 2;
   }
 }

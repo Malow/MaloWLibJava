@@ -77,7 +77,7 @@ public class NetworkChannel extends MaloWProcess
       String msg = this.receiveData();
       if (!msg.equals(""))
       {
-        if ((this.notifier != null) && this.stayAlive)
+        if (this.notifier != null && this.stayAlive)
         {
           this.notifier.putEvent(this.createEvent(msg));
         }
@@ -103,7 +103,10 @@ public class NetworkChannel extends MaloWProcess
   @Override
   public void closeSpecific()
   {
-    if (this.socket == null) return;
+    if (this.socket == null)
+    {
+      return;
+    }
 
     try
     {
@@ -209,8 +212,7 @@ public class NetworkChannel extends MaloWProcess
             }
           }
         }
-      }
-      while (goAgain && this.stayAlive);
+      } while (goAgain && this.stayAlive);
     }
     return msg;
   }

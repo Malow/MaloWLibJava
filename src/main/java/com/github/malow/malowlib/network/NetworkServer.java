@@ -29,7 +29,10 @@ public abstract class NetworkServer extends MaloWProcess
     try
     {
       Socket socket = this.serverSocket.accept();
-      if (socket != null) return this.createNetworkChannel(socket);
+      if (socket != null)
+      {
+        return this.createNetworkChannel(socket);
+      }
     }
     catch (IOException e)
     {
@@ -49,7 +52,7 @@ public abstract class NetworkServer extends MaloWProcess
     while (this.stayAlive)
     {
       NetworkChannel nc = this.listenForNewClients();
-      if ((nc != null) && this.stayAlive)
+      if (nc != null && this.stayAlive)
       {
         this.clientConnected(nc);
       }

@@ -111,13 +111,19 @@ public class ConfigHandler
     T current = configClass.newInstance();
     while (true)
     {
-      if (current.getVersion().equals(version)) return (Class<T>) current.getClass();
+      if (current.getVersion().equals(version))
+      {
+        return (Class<T>) current.getClass();
+      }
       Class<T> previousClass = (Class<T>) current.getPreviousVersionClass();
       if (previousClass != null)
       {
         current = previousClass.newInstance();
       }
-      else throw new ConfigException("Failed to find a version of " + configClass.getSimpleName() + " with version " + version);
+      else
+      {
+        throw new ConfigException("Failed to find a version of " + configClass.getSimpleName() + " with version " + version);
+      }
     }
   }
 
@@ -133,7 +139,10 @@ public class ConfigHandler
         upgraded.upgrade(current);
         current = upgraded;
       }
-      else return current;
+      else
+      {
+        return current;
+      }
     }
   }
 

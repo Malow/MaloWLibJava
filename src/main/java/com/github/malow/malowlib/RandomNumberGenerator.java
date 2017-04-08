@@ -6,7 +6,7 @@ public class RandomNumberGenerator
   {
     double rnd = Math.random();
     float range = max - min;
-    return (float) ((rnd * range) + min);
+    return (float) (rnd * range + min);
   }
 
   public static int getRandomInt(int min, int max)
@@ -14,7 +14,7 @@ public class RandomNumberGenerator
     max++;
     double rnd = Math.random();
     int range = max - min;
-    return (int) ((rnd * range) + min);
+    return (int) (rnd * range + min);
   }
 
   public static int rollD(int x)

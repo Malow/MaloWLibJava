@@ -27,7 +27,10 @@ public class RequestResponseClient extends MaloWProcess
 
   public String sendAndReceive(String msg) throws ConnectionBrokenException
   {
-    if (!this.isAlive()) throw new ConnectionBrokenException();
+    if (!this.isAlive())
+    {
+      throw new ConnectionBrokenException();
+    }
 
     this.nc.sendData(msg);
 
@@ -49,7 +52,10 @@ public class RequestResponseClient extends MaloWProcess
 
   public boolean isAlive()
   {
-    if (this.nc == null) return false;
+    if (this.nc == null)
+    {
+      return false;
+    }
     return this.nc.getState() == ProcessState.RUNNING;
   }
 

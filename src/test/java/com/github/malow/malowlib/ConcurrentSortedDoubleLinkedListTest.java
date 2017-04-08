@@ -21,22 +21,37 @@ public class ConcurrentSortedDoubleLinkedListTest
     {
       final int prime = 31;
       int result = 1;
-      result = prime * result + ((i == null) ? 0 : i.hashCode());
+      result = prime * result + (this.i == null ? 0 : this.i.hashCode());
       return result;
     }
 
     @Override
     public boolean equals(Object obj)
     {
-      if (this == obj) return true;
-      if (obj == null) return false;
-      if (getClass() != obj.getClass()) return false;
-      TestClass other = (TestClass) obj;
-      if (i == null)
+      if (this == obj)
       {
-        if (other.i != null) return false;
+        return true;
       }
-      else if (!i.equals(other.i)) return false;
+      if (obj == null)
+      {
+        return false;
+      }
+      if (this.getClass() != obj.getClass())
+      {
+        return false;
+      }
+      TestClass other = (TestClass) obj;
+      if (this.i == null)
+      {
+        if (other.i != null)
+        {
+          return false;
+        }
+      }
+      else if (!this.i.equals(other.i))
+      {
+        return false;
+      }
       return true;
     }
 
@@ -50,7 +65,7 @@ public class ConcurrentSortedDoubleLinkedListTest
     @Override
     public int compareTo(TestClass o)
     {
-      return i.compareTo(o.i);
+      return this.i.compareTo(o.i);
     }
 
   }
@@ -134,7 +149,7 @@ public class ConcurrentSortedDoubleLinkedListTest
       producer.waitUntillDone();
     }
     long elapsed = System.nanoTime() - before;
-    System.out.println((elapsed / 1000000.0) + "ms.");
+    System.out.println(elapsed / 1000000.0 + "ms.");
     assertThat(list.getSize()).isEqualTo(threadCount * additionsPerThread);
     Optional<Node<TestClass>> current = list.first.get().next;
     int i = 1;

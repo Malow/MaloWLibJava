@@ -143,7 +143,7 @@ public class MaloWLogger
 
   private static void log(LogLevel level, String msg)
   {
-    if (enabled && (threshold.level <= level.level))
+    if (enabled && threshold.level <= level.level)
     {
       logForSpecificLevel(LogLevel.ALL, level.name + ": " + msg, false);
       if (logToSpecificFiles)
@@ -210,7 +210,10 @@ public class MaloWLogger
 
   private static String getStringForCausesRecursively(Throwable cause, List<StackTraceElement> previousStack)
   {
-    if (cause == null) return "";
+    if (cause == null)
+    {
+      return "";
+    }
     StringBuffer buf = new StringBuffer("\n  Caused by " + cause.getClass().getName() + ": " + cause.getMessage());
     List<StackTraceElement> causeStack = Arrays.asList(cause.getStackTrace());
     for (StackTraceElement causeElement : causeStack)
