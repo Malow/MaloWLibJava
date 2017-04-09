@@ -8,8 +8,6 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,8 +26,7 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     Class<?> clazz;
   }
 
-  private static final DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd'T'HH:mm:ss")
-      .appendFraction(ChronoField.MILLI_OF_SECOND, 0, 3, true).toFormatter();
+  private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm[:ss][.SSS]");
   private Connection connection;
   private Class<Entity> entityClass;
 
@@ -108,6 +105,15 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
   public Entity create(Entity entity) throws Exception
   {
     PreparedStatement statement = this.connection.prepareStatement(this.insertString, Statement.RETURN_GENERATED_KEYS);
+    this.populateStatement(statement, entity);
+    statement.executeUpdate();
+    entity.setId(statement.getGeneratedKeys().getInt(1));
+    statement.close();
+    return entity;
+  }
+
+  protected void populateStatement(PreparedStatement statement, Entity entity) throws Exception
+  {
     int i = 1;
     for (EntityField field : this.entityFields)
     {
@@ -128,10 +134,6 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
         statement.setObject(i++, field.field.get(entity));
       }
     }
-    statement.executeUpdate();
-    entity.setId(statement.getGeneratedKeys().getInt(1));
-    statement.close();
-    return entity;
   }
 
   public Entity read(Integer id) throws Exception
@@ -144,6 +146,13 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     }
     Entity entity = this.entityClass.newInstance();
     entity.setId(resultSet.getInt("id"));
+    this.populateEntity(entity, resultSet);
+    statement.close();
+    return entity;
+  }
+
+  protected void populateEntity(Entity entity, ResultSet resultSet) throws Exception
+  {
     for (EntityField field : this.entityFields)
     {
       Object value = this.getValueFromResultSetForField(field.field, field.clazz, resultSet);
@@ -163,8 +172,6 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
         field.field.set(entity, value);
       }
     }
-    statement.close();
-    return entity;
   }
 
   private Class<?> getClassFromField(Field field)
