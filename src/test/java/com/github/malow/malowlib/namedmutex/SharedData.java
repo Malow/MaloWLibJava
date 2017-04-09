@@ -1,0 +1,48 @@
+package com.github.malow.malowlib.namedmutex;
+
+import com.github.malow.malowlib.namedmutex.NamedMutex;
+import com.github.malow.malowlib.namedmutex.NamedMutexHandler;
+import com.github.malow.malowlib.namedmutex.NamedMutexList;
+
+public class SharedData
+{
+
+  private static int data[] = new int[NamedMutexStabilityTest.DATA_COUNT];
+
+  public static void reset()
+  {
+    SharedData.data = new int[NamedMutexStabilityTest.DATA_COUNT];
+  }
+
+  public static void increment(String accId, int x)
+  {
+    SharedData.data[Integer.parseInt(accId)] += x;
+  }
+
+  public static synchronized void incrementSynchronized(String accId, int x)
+  {
+    SharedData.data[Integer.parseInt(accId)] += x;
+  }
+
+  public static void incrementNamedMutex(String accId, int x)
+  {
+    NamedMutex mutex = NamedMutexHandler.getAndLockByName(accId);
+    SharedData.data[Integer.parseInt(accId)] += x;
+    mutex.unlock();
+  }
+
+  public static void incrementMultipleNamedMutexes(int x, String... accIds)
+  {
+    NamedMutexList mutexes = NamedMutexHandler.getAndLockMultipleLocksByNames(accIds);
+    for (String accId : accIds)
+    {
+      SharedData.data[Integer.parseInt(accId)] += x;
+    }
+    mutexes.unlockAll();
+  }
+
+  public static int getData(int i)
+  {
+    return SharedData.data[i];
+  }
+}
