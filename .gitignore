@@ -1,7 +1,7 @@
 #MaloW
 /logs
 /LetsEncryptCerts
-sqlite.db
+*.db
 
 # Created by https://www.gitignore.io/api/java,eclipse
 
