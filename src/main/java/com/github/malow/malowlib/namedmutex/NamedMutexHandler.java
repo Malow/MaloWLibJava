@@ -6,13 +6,20 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Handles the creation of NamedMutex. Stores all mutexes statically meaning that memory will never be released for them. <br>
+ * Be warned: All the mutexes are stored statically by the handler, so memory usage will continue to grow over usage.<br>
  * <br>
  * Usage example: <br>
+ * Single Mutex: <br>
  * {@code NamedMutex mutex = NamedMutexHandler.getAndLockByName("test");} <br>
  * {@code exclusiveData += 54;} <br>
  * {@code TestClass.exclusiveMethodCall(32);} <br>
- * {@code mutex.unlock();}
- *
+ * {@code mutex.unlock();} <br>
+ * <br>
+ * Multiple Mutexes: <br>
+ * {@code String[] mutexNames = {"testMutex1", "testMutex2", "testMutex3"};} <br>
+ * {@code NamedMutexList mutexes = NamedMutexHandler.getAndLockMultipleLocksByNames(mutexNames);} <br>
+ * {@code SharedData.data += x;} <br>
+ * {@code mutexes.unlockAll();} <br>
  */
 public class NamedMutexHandler
 {

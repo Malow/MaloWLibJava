@@ -26,12 +26,13 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     Class<?> clazz;
   }
 
-  private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm[:ss][.SSS]");
+  public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm[:ss][.SSS]");
   private Connection connection;
   private Class<Entity> entityClass;
 
   private String tableName;
   private String insertString;
+  private String updateString;
   private List<Field> fields;
 
   private List<EntityField> entityFields;
@@ -47,6 +48,10 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     this.insertString += ") VALUES (";
     this.insertString += this.fields.stream().map(f -> "?").collect(Collectors.joining(", "));
     this.insertString += ")";
+
+    this.updateString = "UPDATE " + this.tableName + " SET ";
+    this.updateString += this.fields.stream().map(f -> f.getName() + " = ?").collect(Collectors.joining(", "));
+    this.updateString += " WHERE id = ?";
 
     this.entityFields = new ArrayList<>();
     this.fields.stream().forEach(f ->
@@ -112,7 +117,7 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     return entity;
   }
 
-  protected void populateStatement(PreparedStatement statement, Entity entity) throws Exception
+  protected int populateStatement(PreparedStatement statement, Entity entity) throws Exception
   {
     int i = 1;
     for (EntityField field : this.entityFields)
@@ -134,6 +139,7 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
         statement.setObject(i++, field.field.get(entity));
       }
     }
+    return i;
   }
 
   public Entity read(Integer id) throws Exception
@@ -171,6 +177,19 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
       {
         field.field.set(entity, value);
       }
+    }
+  }
+
+  public void update(Entity entity) throws Exception
+  {
+    PreparedStatement statement = this.connection.prepareStatement(this.updateString, Statement.RETURN_GENERATED_KEYS);
+    int i = this.populateStatement(statement, entity);
+    statement.setInt(i++, entity.getId());
+    int rowCount = statement.executeUpdate();
+    statement.close();
+    if (rowCount != 1)
+    {
+      throw new Exception("Row count wasn't 1 after update: " + rowCount);
     }
   }
 
@@ -231,7 +250,7 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
       String timestamp = resultSet.getString(field.getName());
       if (timestamp != null)
       {
-        return LocalDateTime.parse(timestamp, formatter);
+        return LocalDateTime.parse(timestamp, dateFormatter);
       }
       return null;
     }

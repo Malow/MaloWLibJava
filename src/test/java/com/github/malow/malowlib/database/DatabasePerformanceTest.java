@@ -2,51 +2,21 @@ package com.github.malow.malowlib.database;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.sqlite.SQLiteConfig;
 
 import com.github.malow.malowlib.database.DatabaseConnection.DatabaseType;
 
-public class DatabasePerformanceTest
+public class DatabasePerformanceTest extends DatabaseTestFixture
 {
-  public static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm[:ss][.SSS]");
-
-  public static class Vehicle extends DatabaseTableEntity
-  {
-    @Unique
-    public String licancePlate;
-    public Optional<LocalDateTime> purchaseDate = Optional.empty();
-    public Optional<Double> value = Optional.empty();
-
-    public Vehicle()
-    {
-    }
-
-    public Vehicle(String licancePlate)
-    {
-      this.licancePlate = licancePlate;
-    }
-  }
-
-  public static class VehicleAccessor extends Accessor<Vehicle>
-  {
-    public VehicleAccessor(DatabaseConnection databaseConnection)
-    {
-      super(databaseConnection, Vehicle.class);
-    }
-  }
-
   public static class FastVehicleAccessor extends Accessor<Vehicle>
   {
     public FastVehicleAccessor(DatabaseConnection databaseConnection)
@@ -55,9 +25,9 @@ public class DatabasePerformanceTest
     }
 
     @Override
-    protected void populateStatement(PreparedStatement statement, Vehicle entity) throws Exception
+    protected int populateStatement(PreparedStatement statement, Vehicle entity) throws Exception
     {
-      fastPopulateStatement(statement, entity);
+      return fastPopulateStatement(statement, entity);
     }
 
     @Override
@@ -67,17 +37,7 @@ public class DatabasePerformanceTest
     }
   }
 
-  private static final String DATABASE_NAME = "Test";
-  private static final int COUNT = 200000;
-
-  @Before
-  public void resetDatabase() throws Exception
-  {
-    new File(DATABASE_NAME + ".db").delete();
-    DatabaseConnection.resetAll();
-  }
-
-  private static void fastPopulateStatement(PreparedStatement statement, Vehicle entity) throws Exception
+  private static int fastPopulateStatement(PreparedStatement statement, Vehicle entity) throws Exception
   {
     int q = 1;
     statement.setString(q++, entity.licancePlate);
@@ -97,6 +57,7 @@ public class DatabasePerformanceTest
     {
       statement.setObject(q++, null);
     }
+    return q;
   }
 
   private static void fastPopulateEntity(Vehicle entity, ResultSet resultSet) throws Exception
@@ -105,7 +66,7 @@ public class DatabasePerformanceTest
     String timeStamp = resultSet.getString("purchaseDate");
     if (timeStamp != null)
     {
-      entity.purchaseDate = Optional.of(LocalDateTime.parse(timeStamp, DatabasePerformanceTest.formatter));
+      entity.purchaseDate = Optional.of(LocalDateTime.parse(timeStamp, Accessor.dateFormatter));
     }
     else
     {
@@ -121,6 +82,8 @@ public class DatabasePerformanceTest
       entity.value = Optional.of(value);
     }
   }
+
+  private static final int COUNT = 200000;
 
   @Test
   public void testWithoutFramework() throws Exception

@@ -3,82 +3,17 @@ package com.github.malow.malowlib.database;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.io.File;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.sqlite.SQLiteException;
 
 import com.github.malow.malowlib.database.DatabaseConnection.DatabaseType;
 
-public class DatabaseTest
+public class DatabaseTest extends DatabaseTestFixture
 {
-  public static class Vehicle extends DatabaseTableEntity
-  {
-    @Unique
-    public String licancePlate;
-    public Optional<LocalDateTime> purchaseDate;
-    public Optional<Double> value;
-
-    public Vehicle()
-    {
-    }
-
-    public Vehicle(String licancePlate)
-    {
-      this.licancePlate = licancePlate;
-    }
-  }
-
-  public static class VehicleAccessor extends Accessor<Vehicle>
-  {
-    public VehicleAccessor(DatabaseConnection databaseConnection)
-    {
-      super(databaseConnection, Vehicle.class);
-    }
-  }
-
-  public static class Person extends DatabaseTableEntity
-  {
-    @Unique
-    public String name;
-    public Integer age;
-    @ForeignKey(target = Vehicle.class)
-    public Optional<Integer> fk_car;
-    @ForeignKey(target = Vehicle.class)
-    public Optional<Integer> fk_bike;
-
-    public Person()
-    {
-    }
-
-    public Person(String name, Integer age)
-    {
-      this.name = name;
-      this.age = age;
-    }
-  }
-
-  public static class PersonAccessor extends Accessor<Person>
-  {
-    public PersonAccessor(DatabaseConnection databaseConnection)
-    {
-      super(databaseConnection, Person.class);
-    }
-  }
-
-  private static final String DATABASE_NAME = "Test";
-
-  @Before
-  public void resetDatabase() throws Exception
-  {
-    new File(DATABASE_NAME + ".db").delete();
-    DatabaseConnection.resetAll();
-  }
-
   @Test
   public void testForeignKeyAnnotation() throws Exception
   {
@@ -143,6 +78,19 @@ public class DatabaseTest
     c2 = accessor.read(2);
     assertThat(c2.purchaseDate.get()).isEqualTo(date);
     assertThat(c2.value.get()).isEqualTo(2.35);
+  }
+
+  @Test
+  public void testAccessorsUpdate() throws Exception
+  {
+    VehicleAccessor accessor = new VehicleAccessor(DatabaseConnection.get(DatabaseType.SQLITE_MEMORY, DATABASE_NAME));
+    accessor.createTable();
+    Vehicle vehicle = accessor.create(new Vehicle("asd"));
+    vehicle.licancePlate = "dsa";
+    accessor.update(vehicle);
+    vehicle = accessor.read(1);
+    assertThat(vehicle.getId()).isEqualTo(1);
+    assertThat(vehicle.licancePlate).isEqualTo("dsa");
   }
 
   @Test
