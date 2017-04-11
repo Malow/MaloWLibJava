@@ -19,13 +19,18 @@ import com.github.malow.malowlib.database.DatabaseTableEntity.Unique;
 public abstract class Accessor<Entity extends DatabaseTableEntity>
 {
   public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm[:ss][.SSS]");
-  private Connection connection;
-  private Class<Entity> entityClass;
+  protected Connection connection;
+  protected Class<Entity> entityClass;
 
-  private String tableName;
-  private String insertString;
-  private String updateString;
-  private List<Field> fields;
+  protected String tableName;
+  protected String insertString;
+  protected String updateString;
+  protected List<Field> fields;
+
+  protected PreparedStatement createStatement;
+  protected PreparedStatement readStatement;
+  protected PreparedStatement updateStatement;
+  protected PreparedStatement deleteStatement;
 
   public Accessor(DatabaseConnection databaseConnection, Class<Entity> entityClass)
   {
@@ -42,6 +47,117 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     this.updateString = "UPDATE " + this.tableName + " SET ";
     this.updateString += this.fields.stream().map(f -> f.getName() + " = ?").collect(Collectors.joining(", "));
     this.updateString += " WHERE id = ?";
+  }
+
+  public Entity create(Entity entity) throws Exception
+  {
+    try
+    {
+      if (this.createStatement == null)
+      {
+        this.createStatement = this.connection.prepareStatement(this.insertString, Statement.RETURN_GENERATED_KEYS);
+      }
+      this.populateStatement(this.createStatement, entity);
+      this.createStatement.executeUpdate();
+      entity.setId(this.createStatement.getGeneratedKeys().getInt(1));
+      return entity;
+    }
+    catch (Exception e)
+    {
+      this.createStatement.close();
+      this.createStatement = this.connection.prepareStatement(this.insertString, Statement.RETURN_GENERATED_KEYS);
+      throw e;
+    }
+  }
+
+  public Entity read(Integer id) throws Exception
+  {
+    try
+    {
+      if (this.readStatement == null)
+      {
+        this.readStatement = this.connection.prepareStatement("SELECT * FROM " + this.tableName + " WHERE id = ?");
+      }
+      this.readStatement.setInt(1, id);
+      ResultSet resultSet = this.readStatement.executeQuery();
+      if (!resultSet.next())
+      {
+        return null;
+      }
+      Entity entity = this.entityClass.newInstance();
+      entity.setId(resultSet.getInt("id"));
+      this.populateEntity(entity, resultSet);
+      resultSet.close();
+      return entity;
+    }
+    catch (Exception e)
+    {
+      this.readStatement.close();
+      this.readStatement = this.connection.prepareStatement("SELECT * FROM " + this.tableName + " WHERE id = ?");
+      throw e;
+    }
+  }
+
+  public void update(Entity entity) throws Exception
+  {
+    try
+    {
+      if (this.updateStatement == null)
+      {
+        this.updateStatement = this.connection.prepareStatement(this.updateString);
+      }
+      int i = this.populateStatement(this.updateStatement, entity);
+      this.updateStatement.setInt(i++, entity.getId());
+      int rowCount = this.updateStatement.executeUpdate();
+      if (rowCount != 1)
+      {
+        throw new Exception("Row count wasn't 1 after update: " + rowCount);
+      }
+    }
+    catch (Exception e)
+    {
+      this.updateStatement.close();
+      this.updateStatement = this.connection.prepareStatement(this.updateString);
+      throw e;
+    }
+  }
+
+  public void delete(Integer id) throws Exception
+  {
+    try
+    {
+      if (this.deleteStatement == null)
+      {
+        this.deleteStatement = this.connection.prepareStatement("DELETE FROM " + this.tableName + " WHERE id = ?");
+      }
+      this.deleteStatement.setInt(1, id);
+      int rowCount = this.deleteStatement.executeUpdate();
+      if (rowCount != 1)
+      {
+        throw new Exception("Row count wasn't 1 after delete: " + rowCount);
+      }
+    }
+    catch (Exception e)
+    {
+      this.deleteStatement.close();
+      this.deleteStatement = this.connection.prepareStatement("DELETE FROM " + this.tableName + " WHERE id = ?");
+      throw e;
+    }
+  }
+
+  public int getNumberOfEntriesInDatabase() throws Exception
+  {
+    Statement statement = this.connection.createStatement();
+    ResultSet resultSet = statement.executeQuery("SELECT * FROM " + this.tableName);
+    int i = 0;
+    while (resultSet.next())
+    {
+      i++;
+    }
+    resultSet.close();
+    statement.close();
+    return i;
+
   }
 
   protected void dropTable() throws Exception
@@ -87,16 +203,6 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     statement.close();
   }
 
-  public Entity create(Entity entity) throws Exception
-  {
-    PreparedStatement statement = this.connection.prepareStatement(this.insertString, Statement.RETURN_GENERATED_KEYS);
-    this.populateStatement(statement, entity);
-    statement.executeUpdate();
-    entity.setId(statement.getGeneratedKeys().getInt(1));
-    statement.close();
-    return entity;
-  }
-
   protected int populateStatement(PreparedStatement statement, Entity entity) throws Exception
   {
     int i = 1;
@@ -105,21 +211,6 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
       statement.setObject(i++, field.get(entity));
     }
     return i;
-  }
-
-  public Entity read(Integer id) throws Exception
-  {
-    Statement statement = this.connection.createStatement();
-    ResultSet resultSet = statement.executeQuery("SELECT * FROM " + this.tableName + " WHERE id = " + id);
-    if (!resultSet.next())
-    {
-      return null;
-    }
-    Entity entity = this.entityClass.newInstance();
-    entity.setId(resultSet.getInt("id"));
-    this.populateEntity(entity, resultSet);
-    statement.close();
-    return entity;
   }
 
   protected void populateEntity(Entity entity, ResultSet resultSet) throws Exception
@@ -135,19 +226,6 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
       {
         field.set(entity, value);
       }
-    }
-  }
-
-  public void update(Entity entity) throws Exception
-  {
-    PreparedStatement statement = this.connection.prepareStatement(this.updateString, Statement.RETURN_GENERATED_KEYS);
-    int i = this.populateStatement(statement, entity);
-    statement.setInt(i++, entity.getId());
-    int rowCount = statement.executeUpdate();
-    statement.close();
-    if (rowCount != 1)
-    {
-      throw new Exception("Row count wasn't 1 after update: " + rowCount);
     }
   }
 

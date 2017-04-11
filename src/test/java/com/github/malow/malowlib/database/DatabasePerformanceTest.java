@@ -82,6 +82,8 @@ public class DatabasePerformanceTest extends DatabaseTestFixture
     System.out.println("Create table: " + (System.nanoTime() - middle) / 1000000.0 + "ms");
     middle = System.nanoTime();
     long before = middle;
+    PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO vehicle(licensePlate, purchaseDate, value) VALUES (?, ?, ?)",
+        Statement.RETURN_GENERATED_KEYS);
     for (int i = 0; i < COUNT; i++)
     {
       Vehicle vehicle = new Vehicle("a" + i);
@@ -90,23 +92,21 @@ public class DatabasePerformanceTest extends DatabaseTestFixture
       {
         vehicle.value = i + 0.55;
       }
-      PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO vehicle(licensePlate, purchaseDate, value) VALUES (?, ?, ?)",
-          Statement.RETURN_GENERATED_KEYS);
       populateStatement(insertStatement, vehicle);
       insertStatement.executeUpdate();
       insertStatement.getGeneratedKeys().getInt(1);
-      insertStatement.close();
     }
+    insertStatement.close();
     System.out.println("Create entries: " + (System.nanoTime() - middle) / 1000000.0 + "ms");
     middle = System.nanoTime();
+    PreparedStatement selectStatement = connection.prepareStatement("SELECT * FROM vehicle WHERE id = ?");
     for (int i = 0; i < COUNT; i++)
     {
-      Statement selectStatement = connection.createStatement();
-      ResultSet resultSet = selectStatement.executeQuery("SELECT * FROM vehicle WHERE id = " + (i + 1));
+      selectStatement.setInt(1, i + 1);
+      ResultSet resultSet = selectStatement.executeQuery();
       Vehicle vehicle = new Vehicle();
       populateEntity(vehicle, resultSet);
       resultSet.close();
-      selectStatement.close();
       assertThat(vehicle.licensePlate).isEqualTo("a" + i);
       if (i % 2 == 0)
       {
@@ -117,6 +117,7 @@ public class DatabasePerformanceTest extends DatabaseTestFixture
         assertThat(vehicle.value).isNull();
       }
     }
+    selectStatement.close();
     System.out.println("Read entries: " + (System.nanoTime() - middle) / 1000000.0 + "ms");
     System.out.println("Total read/write: " + (System.nanoTime() - before) / 1000000.0 + "ms");
   }

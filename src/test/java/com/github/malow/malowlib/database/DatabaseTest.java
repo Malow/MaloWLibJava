@@ -61,6 +61,29 @@ public class DatabaseTest extends DatabaseTestFixture
   }
 
   @Test
+  public void testDelete() throws Exception
+  {
+    VehicleAccessor accessor = new VehicleAccessor(DatabaseConnection.get(DatabaseType.SQLITE_MEMORY, DATABASE_NAME));
+    accessor.createTable();
+    Vehicle vehicle = accessor.create(new Vehicle("asd"));
+    accessor.delete(vehicle.getId());
+    assertThat(accessor.getNumberOfEntriesInDatabase()).isEqualTo(0);
+    accessor.create(new Vehicle("asd"));
+  }
+
+  @Test
+  public void testGetNumberOfEntriesInDatabase() throws Exception
+  {
+    VehicleAccessor accessor = new VehicleAccessor(DatabaseConnection.get(DatabaseType.SQLITE_MEMORY, DATABASE_NAME));
+    accessor.createTable();
+    assertThat(accessor.getNumberOfEntriesInDatabase()).isEqualTo(0);
+    accessor.create(new Vehicle("asd"));
+    assertThat(accessor.getNumberOfEntriesInDatabase()).isEqualTo(1);
+    accessor.create(new Vehicle("dsa"));
+    assertThat(accessor.getNumberOfEntriesInDatabase()).isEqualTo(2);
+  }
+
+  @Test
   public void testOptionalField() throws Exception
   {
     LocalDateTime date = LocalDateTime.now();
