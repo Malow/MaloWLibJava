@@ -1,7 +1,6 @@
 package com.github.malow.malowlib.database;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,21 +10,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.github.malow.malowlib.database.DatabaseTableEntity.ForeignKey;
+import com.github.malow.malowlib.database.DatabaseTableEntity.Optional;
 import com.github.malow.malowlib.database.DatabaseTableEntity.Unique;
 
 public abstract class Accessor<Entity extends DatabaseTableEntity>
 {
-  private static class EntityField
-  {
-    Field field;
-    boolean isOptional;
-    Class<?> clazz;
-  }
-
   public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm[:ss][.SSS]");
   private Connection connection;
   private Class<Entity> entityClass;
@@ -34,8 +26,6 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
   private String insertString;
   private String updateString;
   private List<Field> fields;
-
-  private List<EntityField> entityFields;
 
   public Accessor(DatabaseConnection databaseConnection, Class<Entity> entityClass)
   {
@@ -52,16 +42,6 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     this.updateString = "UPDATE " + this.tableName + " SET ";
     this.updateString += this.fields.stream().map(f -> f.getName() + " = ?").collect(Collectors.joining(", "));
     this.updateString += " WHERE id = ?";
-
-    this.entityFields = new ArrayList<>();
-    this.fields.stream().forEach(f ->
-    {
-      EntityField entityField = new EntityField();
-      entityField.field = f;
-      entityField.isOptional = f.getType().equals(Optional.class);
-      entityField.clazz = this.getClassFromField(f);
-      this.entityFields.add(entityField);
-    });
   }
 
   protected void dropTable() throws Exception
@@ -80,9 +60,9 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     sql += this.fields.stream().map(field ->
     {
       String s = "";
-      if (field.getType().equals(Optional.class))
+      if (field.isAnnotationPresent(Optional.class))
       {
-        s = field.getName() + " " + this.getSqlTypeFromOptionalField(field);
+        s = field.getName() + " " + field.getType().getSimpleName().toUpperCase();
       }
       else
       {
@@ -120,24 +100,9 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
   protected int populateStatement(PreparedStatement statement, Entity entity) throws Exception
   {
     int i = 1;
-    for (EntityField field : this.entityFields)
+    for (Field field : this.fields)
     {
-      if (field.isOptional)
-      {
-        Optional<?> o = (Optional<?>) field.field.get(entity);
-        if (o != null && o.isPresent())
-        {
-          statement.setObject(i++, o.get());
-        }
-        else
-        {
-          statement.setObject(i++, null);
-        }
-      }
-      else
-      {
-        statement.setObject(i++, field.field.get(entity));
-      }
+      statement.setObject(i++, field.get(entity));
     }
     return i;
   }
@@ -159,23 +124,16 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
 
   protected void populateEntity(Entity entity, ResultSet resultSet) throws Exception
   {
-    for (EntityField field : this.entityFields)
+    for (Field field : this.fields)
     {
-      Object value = this.getValueFromResultSetForField(field.field, field.clazz, resultSet);
-      if (field.isOptional)
+      Object value = this.getValueFromResultSetForField(field, field.getType(), resultSet);
+      if (resultSet.wasNull())
       {
-        if (resultSet.wasNull())
-        {
-          field.field.set(entity, Optional.empty());
-        }
-        else
-        {
-          field.field.set(entity, Optional.of(value));
-        }
+        field.set(entity, null);
       }
       else
       {
-        field.field.set(entity, value);
+        field.set(entity, value);
       }
     }
   }
@@ -191,44 +149,6 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     {
       throw new Exception("Row count wasn't 1 after update: " + rowCount);
     }
-  }
-
-  private Class<?> getClassFromField(Field field)
-  {
-    Class<?> fieldClass = field.getType();
-    if (fieldClass.equals(Optional.class))
-    {
-      fieldClass = this.getClassFromOptionalField(field);
-    }
-    return fieldClass;
-  }
-
-  private String getSqlTypeFromOptionalField(Field field)
-  {
-    Class<?> clazz = this.getClassFromOptionalField(field);
-    if (LocalDateTime.class.equals(clazz))
-    {
-      return "DATETIME";
-    }
-    return clazz.getSimpleName().toUpperCase();
-  }
-
-  private Class<?> getClassFromOptionalField(Field field)
-  {
-    try
-    {
-      Type type = field.getGenericType();
-      Field f = type.getClass().getDeclaredField("actualTypeArguments");
-      f.setAccessible(true);
-      Type type2 = ((Type[]) f.get(type))[0];
-      String s = type2.getTypeName();
-      return Class.forName(s);
-    }
-    catch (Exception e)
-    {
-      e.printStackTrace();
-    }
-    return null;
   }
 
   private Object getValueFromResultSetForField(Field field, Class<?> fieldClass, ResultSet resultSet) throws Exception

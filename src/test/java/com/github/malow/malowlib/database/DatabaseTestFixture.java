@@ -2,7 +2,6 @@ package com.github.malow.malowlib.database;
 
 import java.io.File;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import org.junit.Before;
 
@@ -11,17 +10,19 @@ public class DatabaseTestFixture
   protected static class Vehicle extends DatabaseTableEntity
   {
     @Unique
-    public String licancePlate;
-    public Optional<LocalDateTime> purchaseDate = Optional.empty();
-    public Optional<Double> value = Optional.empty();
+    public String licensePlate;
+    @Optional
+    public LocalDateTime purchaseDate;
+    @Optional
+    public Double value;
 
     public Vehicle()
     {
     }
 
-    public Vehicle(String licancePlate)
+    public Vehicle(String licensePlate)
     {
-      this.licancePlate = licancePlate;
+      this.licensePlate = licensePlate;
     }
   }
 
@@ -39,9 +40,11 @@ public class DatabaseTestFixture
     public String name;
     public Integer age;
     @ForeignKey(target = Vehicle.class)
-    public Optional<Integer> fk_car;
+    @Optional
+    public Integer fk_car;
     @ForeignKey(target = Vehicle.class)
-    public Optional<Integer> fk_bike;
+    @Optional
+    public Integer fk_bike;
 
     public Person()
     {

@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -24,28 +23,28 @@ public class DatabaseTest extends DatabaseTestFixture
     PersonAccessor personAccessor = new PersonAccessor(DatabaseConnection.get(DatabaseType.SQLITE_MEMORY, DATABASE_NAME));
     personAccessor.createTable();
     Person p1 = new Person("asd", 5);
-    p1.fk_car = Optional.of(car.getId());
-    p1.fk_bike = Optional.of(bike.getId());
+    p1.fk_car = car.getId();
+    p1.fk_bike = bike.getId();
     personAccessor.create(p1);
     Person p2 = new Person("dsa", 3);
-    p2.fk_car = Optional.of(car.getId());
-    p2.fk_bike = Optional.of(bike.getId() + 100);
+    p2.fk_car = car.getId();
+    p2.fk_bike = bike.getId() + 100;
     assertThatThrownBy(() ->
     {
       personAccessor.create(p2);
     }).isInstanceOf(SQLiteException.class).hasMessageContaining("A foreign key constraint failed (FOREIGN KEY constraint failed)");
-    p2.fk_car = Optional.of(car.getId() + 100);
-    p2.fk_bike = Optional.of(bike.getId());
+    p2.fk_car = car.getId() + 100;
+    p2.fk_bike = bike.getId();
     assertThatThrownBy(() ->
     {
       personAccessor.create(p2);
     }).isInstanceOf(SQLiteException.class).hasMessageContaining("A foreign key constraint failed (FOREIGN KEY constraint failed)");
-    p2.fk_car = Optional.of(car.getId());
-    p2.fk_bike = Optional.of(bike.getId());
+    p2.fk_car = car.getId();
+    p2.fk_bike = bike.getId();
     personAccessor.create(p2);
     Person p3 = personAccessor.read(p2.getId());
-    assertThat(p3.fk_car.get()).isEqualTo(car.getId());
-    assertThat(p3.fk_bike.get()).isEqualTo(bike.getId());
+    assertThat(p3.fk_car).isEqualTo(car.getId());
+    assertThat(p3.fk_bike).isEqualTo(bike.getId());
   }
 
   @Test
@@ -58,7 +57,7 @@ public class DatabaseTest extends DatabaseTestFixture
     {
       accessor.create(new Vehicle("asd"));
     }).isInstanceOf(SQLiteException.class).hasMessageContaining(
-        "A UNIQUE constraint failed (UNIQUE constraint failed: " + Vehicle.class.getSimpleName().toLowerCase() + ".licancePlate)");
+        "A UNIQUE constraint failed (UNIQUE constraint failed: " + Vehicle.class.getSimpleName().toLowerCase() + ".licensePlate)");
   }
 
   @Test
@@ -68,16 +67,16 @@ public class DatabaseTest extends DatabaseTestFixture
     VehicleAccessor accessor = new VehicleAccessor(DatabaseConnection.get(DatabaseType.SQLITE_MEMORY, DATABASE_NAME));
     accessor.createTable();
     accessor.create(new Vehicle("asd"));
-    Vehicle c1 = accessor.read(1);
-    assertThat(c1.purchaseDate.isPresent()).isFalse();
-    assertThat(c1.value.isPresent()).isFalse();
-    Vehicle c2 = new Vehicle("dsad");
-    c2.purchaseDate = Optional.of(date);
-    c2.value = Optional.of(2.35);
-    accessor.create(c2);
-    c2 = accessor.read(2);
-    assertThat(c2.purchaseDate.get()).isEqualTo(date);
-    assertThat(c2.value.get()).isEqualTo(2.35);
+    Vehicle v1 = accessor.read(1);
+    assertThat(v1.purchaseDate).isNull();
+    assertThat(v1.value).isNull();
+    Vehicle v2 = new Vehicle("dsad");
+    v2.purchaseDate = date;
+    v2.value = 2.35;
+    accessor.create(v2);
+    v2 = accessor.read(2);
+    assertThat(v2.purchaseDate).isEqualTo(date);
+    assertThat(v2.value).isEqualTo(2.35);
   }
 
   @Test
@@ -86,11 +85,11 @@ public class DatabaseTest extends DatabaseTestFixture
     VehicleAccessor accessor = new VehicleAccessor(DatabaseConnection.get(DatabaseType.SQLITE_MEMORY, DATABASE_NAME));
     accessor.createTable();
     Vehicle vehicle = accessor.create(new Vehicle("asd"));
-    vehicle.licancePlate = "dsa";
+    vehicle.licensePlate = "dsa";
     accessor.update(vehicle);
     vehicle = accessor.read(1);
     assertThat(vehicle.getId()).isEqualTo(1);
-    assertThat(vehicle.licancePlate).isEqualTo("dsa");
+    assertThat(vehicle.licensePlate).isEqualTo("dsa");
   }
 
   @Test
@@ -100,12 +99,12 @@ public class DatabaseTest extends DatabaseTestFixture
     accessor.createTable();
     accessor.create(new Vehicle("asd"));
     accessor.create(new Vehicle("dsa"));
-    Vehicle c1 = accessor.read(1);
-    Vehicle c2 = accessor.read(2);
-    assertThat(c1.getId()).isEqualTo(1);
-    assertThat(c1.licancePlate).isEqualTo("asd");
-    assertThat(c2.getId()).isEqualTo(2);
-    assertThat(c2.licancePlate).isEqualTo("dsa");
+    Vehicle v1 = accessor.read(1);
+    Vehicle v2 = accessor.read(2);
+    assertThat(v1.getId()).isEqualTo(1);
+    assertThat(v1.licensePlate).isEqualTo("asd");
+    assertThat(v2.getId()).isEqualTo(2);
+    assertThat(v2.licensePlate).isEqualTo("dsa");
   }
 
   @Test
@@ -117,12 +116,12 @@ public class DatabaseTest extends DatabaseTestFixture
     createAccessor.create(new Vehicle("dsa"));
     DatabaseConnection.resetAll();
     VehicleAccessor readAccessor = new VehicleAccessor(DatabaseConnection.get(DatabaseType.SQLITE_FILE, DATABASE_NAME));
-    Vehicle c1 = readAccessor.read(1);
-    Vehicle c2 = readAccessor.read(2);
-    assertThat(c1.getId()).isEqualTo(1);
-    assertThat(c1.licancePlate).isEqualTo("asd");
-    assertThat(c2.getId()).isEqualTo(2);
-    assertThat(c2.licancePlate).isEqualTo("dsa");
+    Vehicle v1 = readAccessor.read(1);
+    Vehicle v2 = readAccessor.read(2);
+    assertThat(v1.getId()).isEqualTo(1);
+    assertThat(v1.licensePlate).isEqualTo("asd");
+    assertThat(v2.getId()).isEqualTo(2);
+    assertThat(v2.licensePlate).isEqualTo("dsa");
   }
 
   // Not yet finished, SQL code to be executed on the host for the test to work:
@@ -148,11 +147,11 @@ public class DatabaseTest extends DatabaseTestFixture
     createAccessor.create(new Vehicle("dsa"));
     DatabaseConnection.resetAll();
     VehicleAccessor readAccessor = new VehicleAccessor(DatabaseConnection.get(DatabaseType.MYSQL, DATABASE_NAME));
-    Vehicle c1 = readAccessor.read(1);
-    Vehicle c2 = readAccessor.read(2);
-    assertThat(c1.getId()).isEqualTo(1);
-    assertThat(c1.licancePlate).isEqualTo("asd");
-    assertThat(c2.getId()).isEqualTo(2);
-    assertThat(c2.licancePlate).isEqualTo("dsa");
+    Vehicle v1 = readAccessor.read(1);
+    Vehicle v2 = readAccessor.read(2);
+    assertThat(v1.getId()).isEqualTo(1);
+    assertThat(v1.licensePlate).isEqualTo("asd");
+    assertThat(v2.getId()).isEqualTo(2);
+    assertThat(v2.licensePlate).isEqualTo("dsa");
   }
 }

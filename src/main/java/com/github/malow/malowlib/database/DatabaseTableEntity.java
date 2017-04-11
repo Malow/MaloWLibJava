@@ -15,6 +15,12 @@ public abstract class DatabaseTableEntity
 
   @Retention(RetentionPolicy.RUNTIME)
   @Target(ElementType.FIELD)
+  public @interface Optional
+  {
+  }
+
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.FIELD)
   public @interface ForeignKey
   {
     public Class<? extends DatabaseTableEntity> target();
