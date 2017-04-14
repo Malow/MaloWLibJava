@@ -15,6 +15,8 @@ public class DatabaseTestFixture
     public LocalDateTime purchaseDate;
     @Optional
     public Double value;
+    @NotPersisted
+    public Integer cached;
 
     public Vehicle()
     {

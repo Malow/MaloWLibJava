@@ -21,6 +21,12 @@ public abstract class DatabaseTableEntity
 
   @Retention(RetentionPolicy.RUNTIME)
   @Target(ElementType.FIELD)
+  public @interface NotPersisted
+  {
+  }
+
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.FIELD)
   public @interface ForeignKey
   {
     public Class<? extends DatabaseTableEntity> target();

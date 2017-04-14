@@ -132,6 +132,21 @@ public class DatabaseConnection
     return this.databaseName;
   }
 
+  public void close()
+  {
+    if (this.connection != null)
+    {
+      try
+      {
+        this.connection.close();
+      }
+      catch (SQLException e)
+      {
+        MaloWLogger.error("Failed to close databaseConnection", e);
+      }
+    }
+  }
+
   // Only for tests
   protected static void resetAll()
   {

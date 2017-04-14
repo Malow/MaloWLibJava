@@ -5,20 +5,27 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.github.malow.malowlib.MaloWLogger;
+import com.github.malow.malowlib.database.DatabaseExceptions.ForeignKeyException;
+import com.github.malow.malowlib.database.DatabaseExceptions.MissingMandatoryFieldException;
+import com.github.malow.malowlib.database.DatabaseExceptions.MultipleRowsReturnedException;
+import com.github.malow.malowlib.database.DatabaseExceptions.UnexpectedException;
+import com.github.malow.malowlib.database.DatabaseExceptions.UniqueException;
+import com.github.malow.malowlib.database.DatabaseExceptions.ZeroRowsReturnedException;
 import com.github.malow.malowlib.database.DatabaseTableEntity.ForeignKey;
+import com.github.malow.malowlib.database.DatabaseTableEntity.NotPersisted;
 import com.github.malow.malowlib.database.DatabaseTableEntity.Optional;
 import com.github.malow.malowlib.database.DatabaseTableEntity.Unique;
 
 public abstract class Accessor<Entity extends DatabaseTableEntity>
 {
-  public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm[:ss][.SSS]");
   protected Connection connection;
   protected Class<Entity> entityClass;
 
@@ -27,16 +34,17 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
   protected String updateString;
   protected List<Field> fields;
 
-  protected PreparedStatement createStatement;
-  protected PreparedStatement readStatement;
-  protected PreparedStatement updateStatement;
-  protected PreparedStatement deleteStatement;
+  private PreparedStatementPool createStatements;
+  private PreparedStatementPool readStatements;
+  private PreparedStatementPool updateStatements;
+  private PreparedStatementPool deleteStatements;
 
   public Accessor(DatabaseConnection databaseConnection, Class<Entity> entityClass)
   {
     this.connection = databaseConnection.connection;
     this.entityClass = entityClass;
     this.fields = Arrays.asList(this.entityClass.getFields());
+    this.fields = this.fields.stream().filter(f -> !f.isAnnotationPresent(NotPersisted.class)).collect(Collectors.toList());
     this.tableName = this.entityClass.getSimpleName().toLowerCase();
     this.insertString = "INSERT INTO " + this.tableName + "(";
     this.insertString += this.fields.stream().map(f -> f.getName()).collect(Collectors.joining(", "));
@@ -47,101 +55,175 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     this.updateString = "UPDATE " + this.tableName + " SET ";
     this.updateString += this.fields.stream().map(f -> f.getName() + " = ?").collect(Collectors.joining(", "));
     this.updateString += " WHERE id = ?";
+
+    this.createStatements = this.createPreparedStatementPool(this.insertString, Statement.RETURN_GENERATED_KEYS);
+    this.readStatements = this.createPreparedStatementPool("SELECT * FROM " + this.tableName + " WHERE id = ?");
+    this.updateStatements = this.createPreparedStatementPool(this.updateString);
+    this.deleteStatements = this.createPreparedStatementPool("DELETE FROM " + this.tableName + " WHERE id = ?");
   }
 
-  public Entity create(Entity entity) throws Exception
+  public Entity create(Entity entity) throws UniqueException, ForeignKeyException, MissingMandatoryFieldException, UnexpectedException
+  {
+    PreparedStatement statement = null;
+    try
+    {
+      statement = this.createStatements.get();
+      this.populateStatement(statement, entity);
+      this.createWithPopulatedStatement(statement, entity);
+      this.createStatements.add(statement);
+      return entity;
+    }
+    catch (UniqueException | ForeignKeyException | MissingMandatoryFieldException | UnexpectedException e2)
+    {
+      throw e2;
+    }
+    catch (Exception e)
+    {
+      this.logAndReThrowUnexpectedException(
+          "Unexpected error when trying to create a " + this.entityClass.getSimpleName() + ": " + entity.toString() + " in accessor", e);
+    }
+    return null;
+  }
+
+  protected Entity createWithPopulatedStatement(PreparedStatement statement, Entity entity) throws Exception
   {
     try
     {
-      if (this.createStatement == null)
-      {
-        this.createStatement = this.connection.prepareStatement(this.insertString, Statement.RETURN_GENERATED_KEYS);
-      }
-      this.populateStatement(this.createStatement, entity);
-      this.createStatement.executeUpdate();
-      entity.setId(this.createStatement.getGeneratedKeys().getInt(1));
+      statement.executeUpdate();
+      entity.setId(statement.getGeneratedKeys().getInt(1));
       return entity;
     }
     catch (Exception e)
     {
-      this.createStatement.close();
-      this.createStatement = this.connection.prepareStatement(this.insertString, Statement.RETURN_GENERATED_KEYS);
+      if (e.getMessage().contains("A UNIQUE constraint failed (UNIQUE constraint failed:"))
+      {
+        Matcher matcher = Pattern.compile("A UNIQUE constraint failed \\(UNIQUE constraint failed: ([a-zA-Z '.,0-9]+)\\.([a-zA-Z '.,0-9]+)")
+            .matcher(e.getMessage());
+        matcher.find();
+        String fieldName = matcher.group(2);
+        String value = this.fields.stream().filter(f -> f.getName().equals(fieldName)).findFirst().get().get(entity).toString();
+        throw new UniqueException(fieldName, value);
+      }
+      else if (e.getMessage().contains("A foreign key constraint failed (FOREIGN KEY constraint failed)"))
+      {
+        throw new ForeignKeyException();
+      }
+      else if (e.getMessage().contains("A NOT NULL constraint failed (NOT NULL constraint failed:"))
+      {
+        Matcher matcher = Pattern.compile("A NOT NULL constraint failed \\(NOT NULL constraint failed: ([a-zA-Z '.,0-9]+)\\.([a-zA-Z '.,0-9]+)")
+            .matcher(e.getMessage());
+        matcher.find();
+        String fieldName = matcher.group(2);
+        throw new MissingMandatoryFieldException(fieldName);
+      }
       throw e;
     }
   }
 
-  public Entity read(Integer id) throws Exception
+  public Entity read(Integer id) throws ZeroRowsReturnedException, MultipleRowsReturnedException, UnexpectedException
   {
+    PreparedStatement statement = null;
     try
     {
-      if (this.readStatement == null)
-      {
-        this.readStatement = this.connection.prepareStatement("SELECT * FROM " + this.tableName + " WHERE id = ?");
-      }
-      this.readStatement.setInt(1, id);
-      ResultSet resultSet = this.readStatement.executeQuery();
-      if (!resultSet.next())
-      {
-        return null;
-      }
-      Entity entity = this.entityClass.newInstance();
-      entity.setId(resultSet.getInt("id"));
-      this.populateEntity(entity, resultSet);
+      statement = this.readStatements.get();
+      statement.setInt(1, id);
+      Entity entity = this.readWithPopulatedStatement(statement);
+      this.readStatements.add(statement);
+      return entity;
+    }
+    catch (ZeroRowsReturnedException | MultipleRowsReturnedException e)
+    {
+      throw e;
+    }
+    catch (Exception e)
+    {
+      this.closeStatement(statement);
+      this.logAndReThrowUnexpectedException(
+          "Unexpected error when trying to read a " + this.entityClass.getSimpleName() + " with id " + id + " in accessor", e);
+    }
+    return null;
+  }
+
+  protected Entity readWithPopulatedStatement(PreparedStatement statement) throws Exception
+  {
+    ResultSet resultSet = statement.executeQuery();
+    if (!resultSet.next())
+    {
       resultSet.close();
-      return entity;
+      throw new ZeroRowsReturnedException();
     }
-    catch (Exception e)
+    Entity entity = this.entityClass.newInstance();
+    entity.setId(resultSet.getInt("id"));
+    this.populateEntity(entity, resultSet);
+    if (resultSet.next())
     {
-      this.readStatement.close();
-      this.readStatement = this.connection.prepareStatement("SELECT * FROM " + this.tableName + " WHERE id = ?");
-      throw e;
+      resultSet.close();
+      throw new MultipleRowsReturnedException();
     }
+    resultSet.close();
+    return entity;
   }
 
-  public void update(Entity entity) throws Exception
+  public boolean update(Entity entity) throws ZeroRowsReturnedException, MultipleRowsReturnedException, UnexpectedException
   {
+    PreparedStatement statement = null;
     try
     {
-      if (this.updateStatement == null)
-      {
-        this.updateStatement = this.connection.prepareStatement(this.updateString);
-      }
-      int i = this.populateStatement(this.updateStatement, entity);
-      this.updateStatement.setInt(i++, entity.getId());
-      int rowCount = this.updateStatement.executeUpdate();
-      if (rowCount != 1)
-      {
-        throw new Exception("Row count wasn't 1 after update: " + rowCount);
-      }
+      statement = this.updateStatements.get();
+      int i = this.populateStatement(statement, entity);
+      statement.setInt(i++, entity.getId());
+      this.updateWithPopulatedStatement(statement);
+      this.updateStatements.add(statement);
+      return true;
+    }
+    catch (ZeroRowsReturnedException | MultipleRowsReturnedException e)
+    {
+      throw e;
     }
     catch (Exception e)
     {
-      this.updateStatement.close();
-      this.updateStatement = this.connection.prepareStatement(this.updateString);
-      throw e;
+      this.closeStatement(statement);
+      this.logAndReThrowUnexpectedException(
+          "Unexpected error when trying to update a " + this.entityClass.getSimpleName() + " with id " + entity.getId() + " in accessor", e);
     }
+    return false;
   }
 
-  public void delete(Integer id) throws Exception
+  public boolean delete(Integer id) throws ZeroRowsReturnedException, MultipleRowsReturnedException, UnexpectedException
   {
+    PreparedStatement statement = null;
     try
     {
-      if (this.deleteStatement == null)
-      {
-        this.deleteStatement = this.connection.prepareStatement("DELETE FROM " + this.tableName + " WHERE id = ?");
-      }
-      this.deleteStatement.setInt(1, id);
-      int rowCount = this.deleteStatement.executeUpdate();
-      if (rowCount != 1)
-      {
-        throw new Exception("Row count wasn't 1 after delete: " + rowCount);
-      }
+      statement = this.deleteStatements.get();
+      statement.setInt(1, id);
+      this.updateWithPopulatedStatement(statement);
+      this.deleteStatements.add(statement);
+      return true;
+    }
+    catch (ZeroRowsReturnedException | MultipleRowsReturnedException e)
+    {
+      throw e;
     }
     catch (Exception e)
     {
-      this.deleteStatement.close();
-      this.deleteStatement = this.connection.prepareStatement("DELETE FROM " + this.tableName + " WHERE id = ?");
-      throw e;
+      this.closeStatement(statement);
+      this.logAndReThrowUnexpectedException(
+          "Unexpected error when trying to delete a " + this.entityClass.getSimpleName() + " with id " + id + " in accessor", e);
+
+    }
+    return false;
+  }
+
+  protected void updateWithPopulatedStatement(PreparedStatement statement) throws Exception
+  {
+    int rowCount = statement.executeUpdate();
+    if (rowCount == 0)
+    {
+      throw new ZeroRowsReturnedException();
+    }
+    else if (rowCount > 1)
+    {
+      throw new MultipleRowsReturnedException();
     }
   }
 
@@ -157,7 +239,6 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     resultSet.close();
     statement.close();
     return i;
-
   }
 
   protected void dropTable() throws Exception
@@ -217,7 +298,7 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
   {
     for (Field field : this.fields)
     {
-      Object value = this.getValueFromResultSetForField(field, field.getType(), resultSet);
+      Object value = ResultSetConverter.getValueFromResultSetForField(field, field.getType(), resultSet);
       if (resultSet.wasNull())
       {
         field.set(entity, null);
@@ -229,32 +310,34 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     }
   }
 
-  private Object getValueFromResultSetForField(Field field, Class<?> fieldClass, ResultSet resultSet) throws Exception
+  protected PreparedStatementPool createPreparedStatementPool(String statementString, Integer statementParam)
   {
-    if (fieldClass.equals(String.class))
+    return new PreparedStatementPool(this.connection, statementString, statementParam);
+  }
+
+  protected PreparedStatementPool createPreparedStatementPool(String statementString)
+  {
+    return new PreparedStatementPool(this.connection, statementString);
+  }
+
+  protected void logAndReThrowUnexpectedException(String msg, Exception e) throws UnexpectedException
+  {
+    MaloWLogger.error(msg, e);
+    throw new UnexpectedException(msg, e);
+  }
+
+  protected void closeStatement(PreparedStatement statement)
+  {
+    try
     {
-      return resultSet.getString(field.getName());
-    }
-    else if (fieldClass.equals(Integer.class))
-    {
-      return resultSet.getInt(field.getName());
-    }
-    else if (fieldClass.equals(Double.class))
-    {
-      return resultSet.getDouble(field.getName());
-    }
-    else if (fieldClass.equals(LocalDateTime.class))
-    {
-      String timestamp = resultSet.getString(field.getName());
-      if (timestamp != null)
+      if (statement != null)
       {
-        return LocalDateTime.parse(timestamp, dateFormatter);
+        statement.close();
       }
-      return null;
     }
-    else
+    catch (Exception e)
     {
-      throw new Exception("Type not supported: " + fieldClass);
+      MaloWLogger.error("Failed to close statement", e);
     }
   }
 }

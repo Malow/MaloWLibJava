@@ -45,7 +45,7 @@ public class DatabasePerformanceTest extends DatabaseTestFixture
     String timeStamp = resultSet.getString("purchaseDate");
     if (timeStamp != null)
     {
-      entity.purchaseDate = LocalDateTime.parse(timeStamp, Accessor.dateFormatter);
+      entity.purchaseDate = LocalDateTime.parse(timeStamp, ResultSetConverter.dateFormatter);
     }
     else
     {

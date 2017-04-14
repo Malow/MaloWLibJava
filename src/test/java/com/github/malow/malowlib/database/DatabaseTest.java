@@ -7,9 +7,11 @@ import java.time.LocalDateTime;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.sqlite.SQLiteException;
 
 import com.github.malow.malowlib.database.DatabaseConnection.DatabaseType;
+import com.github.malow.malowlib.database.DatabaseExceptions.ForeignKeyException;
+import com.github.malow.malowlib.database.DatabaseExceptions.MissingMandatoryFieldException;
+import com.github.malow.malowlib.database.DatabaseExceptions.UniqueException;
 
 public class DatabaseTest extends DatabaseTestFixture
 {
@@ -32,13 +34,13 @@ public class DatabaseTest extends DatabaseTestFixture
     assertThatThrownBy(() ->
     {
       personAccessor.create(p2);
-    }).isInstanceOf(SQLiteException.class).hasMessageContaining("A foreign key constraint failed (FOREIGN KEY constraint failed)");
+    }).isInstanceOf(ForeignKeyException.class);
     p2.fk_car = car.getId() + 100;
     p2.fk_bike = bike.getId();
     assertThatThrownBy(() ->
     {
       personAccessor.create(p2);
-    }).isInstanceOf(SQLiteException.class).hasMessageContaining("A foreign key constraint failed (FOREIGN KEY constraint failed)");
+    }).isInstanceOf(ForeignKeyException.class);
     p2.fk_car = car.getId();
     p2.fk_bike = bike.getId();
     personAccessor.create(p2);
@@ -56,8 +58,20 @@ public class DatabaseTest extends DatabaseTestFixture
     assertThatThrownBy(() ->
     {
       accessor.create(new Vehicle("asd"));
-    }).isInstanceOf(SQLiteException.class).hasMessageContaining(
-        "A UNIQUE constraint failed (UNIQUE constraint failed: " + Vehicle.class.getSimpleName().toLowerCase() + ".licensePlate)");
+    }).isInstanceOf(UniqueException.class).hasFieldOrPropertyWithValue("fieldName", "licensePlate").hasFieldOrPropertyWithValue("value", "asd")
+        .hasMessage("A row already exists with the field licensePlate containing the unique value asd");
+  }
+
+  @Test
+  public void testNonPersistedAnnotation() throws Exception
+  {
+    VehicleAccessor accessor = new VehicleAccessor(DatabaseConnection.get(DatabaseType.SQLITE_MEMORY, DATABASE_NAME));
+    accessor.createTable();
+    Vehicle vehicle = new Vehicle("asd");
+    vehicle.cached = 3;
+    vehicle = accessor.create(vehicle);
+    vehicle = accessor.read(vehicle.getId());
+    assertThat(vehicle.cached).isNull();
   }
 
   @Test
@@ -100,6 +114,18 @@ public class DatabaseTest extends DatabaseTestFixture
     v2 = accessor.read(2);
     assertThat(v2.purchaseDate).isEqualTo(date);
     assertThat(v2.value).isEqualTo(2.35);
+  }
+
+  @Test
+  public void testMissingNonOptionalField() throws Exception
+  {
+    VehicleAccessor accessor = new VehicleAccessor(DatabaseConnection.get(DatabaseType.SQLITE_MEMORY, DATABASE_NAME));
+    accessor.createTable();
+    assertThatThrownBy(() ->
+    {
+      accessor.create(new Vehicle());
+    }).isInstanceOf(MissingMandatoryFieldException.class).hasFieldOrPropertyWithValue("fieldName", "licensePlate")
+        .hasMessage("The field licensePlate is mandatory but it was null.");
   }
 
   @Test
@@ -152,11 +178,11 @@ public class DatabaseTest extends DatabaseTestFixture
   DROP DATABASE Test;
   CREATE DATABASE Test;
   USE Test;
-
+  
   DROP USER TestUsr;
   FLUSH PRIVILEGES;
   CREATE USER TestUsr IDENTIFIED BY 'test';
-
+  
   GRANT USAGE ON *.* TO 'TestUsr'@'%' IDENTIFIED BY 'test';
   GRANT ALL PRIVILEGES ON Test.* TO 'TestUsr'@'%'WITH GRANT OPTION;
   */
