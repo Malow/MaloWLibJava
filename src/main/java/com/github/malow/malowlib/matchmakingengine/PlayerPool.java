@@ -2,7 +2,6 @@ package com.github.malow.malowlib.matchmakingengine;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import com.github.malow.malowlib.ConcurrentSortedDoubleLinkedList;
 
@@ -25,25 +24,25 @@ public class PlayerPool extends ConcurrentSortedDoubleLinkedList<MatchmakingPlay
   {
     List<MatchmakingResult> resultList = new ArrayList<>();
     this.lock();
-    Optional<Node<MatchmakingPlayer>> current = this.first;
-    if (current.isPresent())
+    Node<MatchmakingPlayer> current = this.first;
+    if (current != null)
     {
-      current = current.get().next;
+      current = current.next;
     }
-    while (current.isPresent())
+    while (current != null)
     {
-      if (current.get().previous.isPresent() && this.isSuitableMatch(current.get().item, current.get().previous.get().item))
+      if (current.previous != null && this.isSuitableMatch(current.item, current.previous.item))
       {
-        Node<MatchmakingPlayer> previous = current.get().previous.get();
-        resultList.add(new MatchmakingResult(current.get().item, previous.item));
+        Node<MatchmakingPlayer> previous = current.previous;
+        resultList.add(new MatchmakingResult(current.item, previous.item));
         this.remove(previous);
-        Optional<Node<MatchmakingPlayer>> next = current.get().next;
-        this.remove(current.get());
+        Node<MatchmakingPlayer> next = current.next;
+        this.remove(current);
         current = next;
       }
       else
       {
-        current = current.get().next;
+        current = current.next;
       }
     }
     this.unlock();

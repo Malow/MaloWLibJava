@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -84,11 +83,11 @@ public class ConcurrentSortedDoubleLinkedListTest
     list.add(new TestClass(3));
     list.add(new TestClass(1));
     list.add(new TestClass(2));
-    Node<TestClass> current = list.first.get();
+    Node<TestClass> current = list.first;
     assertThat(current.item.i).isEqualTo(1);
-    current = current.next.get();
+    current = current.next;
     assertThat(current.item.i).isEqualTo(2);
-    current = current.next.get();
+    current = current.next;
     assertThat(current.item.i).isEqualTo(3);
   }
 
@@ -151,12 +150,12 @@ public class ConcurrentSortedDoubleLinkedListTest
     long elapsed = System.nanoTime() - before;
     System.out.println(elapsed / 1000000.0 + "ms.");
     assertThat(list.getSize()).isEqualTo(threadCount * additionsPerThread);
-    Optional<Node<TestClass>> current = list.first.get().next;
+    Node<TestClass> current = list.first.next;
     int i = 1;
-    while (current.isPresent())
+    while (current != null)
     {
-      assertThat(current.get().item.i).isGreaterThanOrEqualTo(current.get().previous.get().item.i);
-      current = current.get().next;
+      assertThat(current.item.i).isGreaterThanOrEqualTo(current.previous.item.i);
+      current = current.next;
       i++;
     }
     assertThat(i).isEqualTo(threadCount * additionsPerThread);

@@ -60,7 +60,7 @@ public class MatchmakingEngine extends MaloWProcess
     return this.config;
   }
 
-  public int getPlayersInQueue()
+  public int getNumberOfPlayersInQueue()
   {
     return this.playerPool.getSize();
   }

@@ -42,8 +42,10 @@ public class MatchmakingEngineTestFixture
   public void before()
   {
     this.testListener = new TestListener();
+    this.testListener.warningThresholdEventQueue = 1000000;
     this.testListener.start();
     this.matchmakingEngine = new MatchmakingEngine(new MatchmakingEngineConfig(), this.testListener);
+    this.matchmakingEngine.warningThresholdEventQueue = 1000000;
     this.matchmakingEngine.start();
   }
 

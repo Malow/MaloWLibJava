@@ -22,7 +22,7 @@ public class MatchmakingEngineTest extends MatchmakingEngineTestFixture
     this.matchmakingEngine.enqueue(0L, 100.0);
     this.matchmakingEngine.enqueue(1L, 115.0);
     Thread.sleep(20);
-    assertThat(this.matchmakingEngine.getPlayersInQueue()).isEqualTo(2);
+    assertThat(this.matchmakingEngine.getNumberOfPlayersInQueue()).isEqualTo(2);
     while (this.testListener.matches.isEmpty() && timeElapsed < 600)
     {
       Thread.sleep(10);
@@ -30,7 +30,7 @@ public class MatchmakingEngineTest extends MatchmakingEngineTestFixture
     }
     timeElapsed = System.currentTimeMillis() - startTime;
     assertThat(timeElapsed).isCloseTo(500L, within(30L));
-    assertThat(this.matchmakingEngine.getPlayersInQueue()).isEqualTo(0);
+    assertThat(this.matchmakingEngine.getNumberOfPlayersInQueue()).isEqualTo(0);
     assertThat(this.testListener.matches).hasSize(1);
     assertThat(this.testListener.matches.get(0)).isEqualTo(new MatchmakingResult(new MatchmakingPlayer(0L), new MatchmakingPlayer(1L)));
   }
@@ -48,7 +48,7 @@ public class MatchmakingEngineTest extends MatchmakingEngineTestFixture
     this.matchmakingEngine.enqueue(0L, 100.0);
     this.matchmakingEngine.enqueue(1L, 120.0);
     Thread.sleep(20);
-    assertThat(this.matchmakingEngine.getPlayersInQueue()).isEqualTo(2);
+    assertThat(this.matchmakingEngine.getNumberOfPlayersInQueue()).isEqualTo(2);
     while (this.testListener.matches.isEmpty() && timeElapsed < 600)
     {
       Thread.sleep(10);
@@ -56,7 +56,7 @@ public class MatchmakingEngineTest extends MatchmakingEngineTestFixture
     }
     timeElapsed = System.currentTimeMillis() - startTime;
     assertThat(timeElapsed).isCloseTo(600L, within(15L));
-    assertThat(this.matchmakingEngine.getPlayersInQueue()).isEqualTo(2);
+    assertThat(this.matchmakingEngine.getNumberOfPlayersInQueue()).isEqualTo(2);
     assertThat(this.testListener.matches).hasSize(0);
   }
 
@@ -73,7 +73,7 @@ public class MatchmakingEngineTest extends MatchmakingEngineTestFixture
     this.matchmakingEngine.enqueue(0L, 100.0);
     this.matchmakingEngine.enqueue(1L, 120.0);
     Thread.sleep(20);
-    assertThat(this.matchmakingEngine.getPlayersInQueue()).isEqualTo(2);
+    assertThat(this.matchmakingEngine.getNumberOfPlayersInQueue()).isEqualTo(2);
     while (this.testListener.matches.isEmpty() && timeElapsed < 1100)
     {
       Thread.sleep(10);
@@ -81,7 +81,7 @@ public class MatchmakingEngineTest extends MatchmakingEngineTestFixture
     }
     timeElapsed = System.currentTimeMillis() - startTime;
     assertThat(timeElapsed).isCloseTo(1000L, within(15L));
-    assertThat(this.matchmakingEngine.getPlayersInQueue()).isEqualTo(0);
+    assertThat(this.matchmakingEngine.getNumberOfPlayersInQueue()).isEqualTo(0);
     assertThat(this.testListener.matches).hasSize(1);
     assertThat(this.testListener.matches.get(0)).isEqualTo(new MatchmakingResult(new MatchmakingPlayer(0L), new MatchmakingPlayer(1L)));
   }
