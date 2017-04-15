@@ -49,9 +49,9 @@ public abstract class HttpsPostHandler implements HttpHandler
     }
   }
 
-  protected static HttpsPostRequest createValidJsonRequest(String request, Class<? extends HttpsPostRequest> c) throws BadRequestException
+  protected static <T extends HttpsPostRequest> T createValidJsonRequest(String request, Class<T> clazz) throws BadRequestException
   {
-    HttpsPostRequest req = GsonSingleton.fromJson(request, c);
+    T req = GsonSingleton.fromJson(request, clazz);
     if (req != null && req.isValid())
     {
       return req;

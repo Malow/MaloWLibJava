@@ -2,7 +2,7 @@ package com.github.malow.malowlib.network.https;
 
 import org.junit.Test;
 
-public class LetsEncryptTest
+public class LetsEncryptCertificatesDownloader
 {
   @Test
   public void testDownloadCertificates() throws Exception

@@ -164,7 +164,7 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     return entity;
   }
 
-  public boolean update(Entity entity) throws ZeroRowsReturnedException, MultipleRowsReturnedException, UnexpectedException
+  public void update(Entity entity) throws ZeroRowsReturnedException, MultipleRowsReturnedException, UnexpectedException
   {
     PreparedStatement statement = null;
     try
@@ -174,7 +174,6 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
       statement.setInt(i++, entity.getId());
       this.updateWithPopulatedStatement(statement);
       this.updateStatements.add(statement);
-      return true;
     }
     catch (ZeroRowsReturnedException | MultipleRowsReturnedException e)
     {
@@ -186,10 +185,9 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
       this.logAndReThrowUnexpectedException(
           "Unexpected error when trying to update a " + this.entityClass.getSimpleName() + " with id " + entity.getId() + " in accessor", e);
     }
-    return false;
   }
 
-  public boolean delete(Integer id) throws ZeroRowsReturnedException, MultipleRowsReturnedException, UnexpectedException
+  public void delete(Integer id) throws ZeroRowsReturnedException, MultipleRowsReturnedException, UnexpectedException
   {
     PreparedStatement statement = null;
     try
@@ -198,7 +196,6 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
       statement.setInt(1, id);
       this.updateWithPopulatedStatement(statement);
       this.deleteStatements.add(statement);
-      return true;
     }
     catch (ZeroRowsReturnedException | MultipleRowsReturnedException e)
     {
@@ -211,7 +208,6 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
           "Unexpected error when trying to delete a " + this.entityClass.getSimpleName() + " with id " + id + " in accessor", e);
 
     }
-    return false;
   }
 
   protected void updateWithPopulatedStatement(PreparedStatement statement) throws Exception
@@ -248,7 +244,7 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     statement.close();
   }
 
-  protected void createTable() throws Exception
+  public void createTable() throws Exception
   {
     this.dropTable();
     Statement statement = this.connection.createStatement();
