@@ -1,6 +1,8 @@
 package com.github.malow.malowlib.database;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -39,10 +41,21 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
   private PreparedStatementPool updateStatements;
   private PreparedStatementPool deleteStatements;
 
-  public Accessor(DatabaseConnection databaseConnection, Class<Entity> entityClass)
+  @SuppressWarnings("unchecked")
+  public Accessor(DatabaseConnection databaseConnection)
   {
+    try
+    {
+      Type genericSuperClass = this.getClass().getGenericSuperclass();
+      Type type = ((ParameterizedType) genericSuperClass).getActualTypeArguments()[0];
+      this.entityClass = (Class<Entity>) Class.forName(type.getTypeName());
+    }
+    catch (Exception e)
+    {
+    }
+
     this.connection = databaseConnection.connection;
-    this.entityClass = entityClass;
+    //this.entityClass = entityClass;
     this.fields = Arrays.asList(this.entityClass.getFields());
     this.fields = this.fields.stream().filter(f -> !f.isAnnotationPresent(NotPersisted.class)).collect(Collectors.toList());
     this.tableName = this.entityClass.getSimpleName().toLowerCase();

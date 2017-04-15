@@ -24,7 +24,7 @@ public class DatabaseConcurrencyTest extends DatabaseTestFixture
   {
     public DataAccessor(DatabaseConnection databaseConnection)
     {
-      super(databaseConnection, Data.class);
+      super(databaseConnection);
     }
   }
 

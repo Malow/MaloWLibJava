@@ -32,7 +32,7 @@ public class DatabaseTestFixture
   {
     public VehicleAccessor(DatabaseConnection databaseConnection)
     {
-      super(databaseConnection, Vehicle.class);
+      super(databaseConnection);
     }
   }
 
@@ -63,7 +63,7 @@ public class DatabaseTestFixture
   {
     public PersonAccessor(DatabaseConnection databaseConnection)
     {
-      super(databaseConnection, Person.class);
+      super(databaseConnection);
     }
   }
 
