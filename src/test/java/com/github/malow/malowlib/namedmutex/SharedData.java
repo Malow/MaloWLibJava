@@ -1,9 +1,5 @@
 package com.github.malow.malowlib.namedmutex;
 
-import com.github.malow.malowlib.namedmutex.NamedMutex;
-import com.github.malow.malowlib.namedmutex.NamedMutexHandler;
-import com.github.malow.malowlib.namedmutex.NamedMutexList;
-
 public class SharedData
 {
 
@@ -33,11 +29,12 @@ public class SharedData
 
   public static void incrementMultipleNamedMutexes(int x, String... accIds)
   {
-    NamedMutexList mutexes = NamedMutexHandler.getAndLockMultipleLocksByNames(accIds);
+    NamedMutexList mutexes = NamedMutexHandler.getAndLockMultipleByNames(accIds);
     for (String accId : accIds)
     {
       SharedData.data[Integer.parseInt(accId)] += x;
     }
+    System.out.println("releasing all");
     mutexes.unlockAll();
   }
 

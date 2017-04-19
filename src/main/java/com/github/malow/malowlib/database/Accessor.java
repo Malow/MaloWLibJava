@@ -52,10 +52,10 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     }
     catch (Exception e)
     {
+      MaloWLogger.error("Failed to get entityClass for accessor", e);
     }
 
     this.connection = databaseConnection.connection;
-    //this.entityClass = entityClass;
     this.fields = Arrays.asList(this.entityClass.getFields());
     this.fields = this.fields.stream().filter(f -> !f.isAnnotationPresent(NotPersisted.class)).collect(Collectors.toList());
     this.tableName = this.entityClass.getSimpleName().toLowerCase();
@@ -175,6 +175,26 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     }
     resultSet.close();
     return entity;
+  }
+
+  protected List<Entity> readMultipleWithPopulatedStatement(PreparedStatement statement) throws Exception
+  {
+    ResultSet resultSet = statement.executeQuery();
+    if (!resultSet.next())
+    {
+      resultSet.close();
+      throw new ZeroRowsReturnedException();
+    }
+    List<Entity> result = new ArrayList<>();
+    do
+    {
+      Entity entity = this.entityClass.newInstance();
+      entity.setId(resultSet.getInt("id"));
+      this.populateEntity(entity, resultSet);
+      result.add(entity);
+    } while (resultSet.next());
+    resultSet.close();
+    return result;
   }
 
   public void update(Entity entity) throws ZeroRowsReturnedException, MultipleRowsReturnedException, UnexpectedException

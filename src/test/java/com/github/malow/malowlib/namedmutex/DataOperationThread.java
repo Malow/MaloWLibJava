@@ -29,19 +29,19 @@ public class DataOperationThread implements Runnable
   {
     while (this.go)
     {
-      ArrayList<String> dataIds = new ArrayList<String>();
+      ArrayList<String> accIds = new ArrayList<String>();
       for (int i = 0; i < NamedMutexStabilityTest.NR_OF_DATA_PER_OPERATION; i++)
       {
-        dataIds.add("" + rand(NamedMutexStabilityTest.DATA_COUNT));
+        accIds.add("" + rand(NamedMutexStabilityTest.DATA_COUNT));
       }
       int x = DataOperationThread.rand(10);
       if (this.lockType == LockType.NAMED_MUTEX_MULTIPLE)
       {
-        String[] stockArr = new String[dataIds.size()];
-        dataIds.toArray(stockArr);
+        String[] stockArr = new String[accIds.size()];
+        accIds.toArray(stockArr);
         SharedData.incrementMultipleNamedMutexes(x, stockArr);
       }
-      for (String accId : dataIds)
+      for (String accId : accIds)
       {
         this.myData[Integer.parseInt(accId)] += x;
         if (this.lockType == LockType.NO_LOCK)

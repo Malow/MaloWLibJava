@@ -16,7 +16,7 @@ public class NamedMutexStabilityTest
     NAMED_MUTEX_MULTIPLE
   }
 
-  public static final int THREAD_COUNT = 1000;
+  public static final int THREAD_COUNT = 5;
   public static final int DATA_COUNT = 1000;
   public static final int NR_OF_DATA_PER_OPERATION = 10;
   public static final int TEST_LENGTH_MS = 5000;

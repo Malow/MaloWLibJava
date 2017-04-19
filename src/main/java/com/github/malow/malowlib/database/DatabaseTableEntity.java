@@ -43,4 +43,10 @@ public abstract class DatabaseTableEntity
   {
     this.id = id;
   }
+
+  @Override
+  public String toString()
+  {
+    return this.getClass().getSimpleName() + ":" + this.getId();
+  }
 }
