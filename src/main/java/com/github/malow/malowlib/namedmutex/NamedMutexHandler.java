@@ -57,13 +57,11 @@ public class NamedMutexHandler
    */
   public static synchronized NamedMutexList getAndLockMultipleByNames(String... names)
   {
-    System.out.println("Getting multiple");
     ArrayList<NamedMutex> locks = new ArrayList<NamedMutex>();
     for (String name : names)
     {
       locks.add(NamedMutexHandler.getAndLockByName(name));
     }
-    System.out.println("Got em");
     return new NamedMutexList(locks);
   }
 }

@@ -34,7 +34,6 @@ public class SharedData
     {
       SharedData.data[Integer.parseInt(accId)] += x;
     }
-    System.out.println("releasing all");
     mutexes.unlockAll();
   }
 

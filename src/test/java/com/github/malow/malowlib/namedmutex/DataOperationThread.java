@@ -1,11 +1,12 @@
 package com.github.malow.malowlib.namedmutex;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 import com.github.malow.malowlib.namedmutex.NamedMutexStabilityTest.LockType;
 
-public class DataOperationThread implements Runnable
+public class DataOperationThread extends Thread
 {
 
   public static int rand(int x)
@@ -29,10 +30,15 @@ public class DataOperationThread implements Runnable
   {
     while (this.go)
     {
-      ArrayList<String> accIds = new ArrayList<String>();
+      Set<String> accIds = new HashSet<String>();
       for (int i = 0; i < NamedMutexStabilityTest.NR_OF_DATA_PER_OPERATION; i++)
       {
-        accIds.add("" + rand(NamedMutexStabilityTest.DATA_COUNT));
+        int x = rand(NamedMutexStabilityTest.DATA_COUNT);
+        while (accIds.contains("" + x))
+        {
+          x = rand(NamedMutexStabilityTest.DATA_COUNT);
+        }
+        accIds.add("" + x);
       }
       int x = DataOperationThread.rand(10);
       if (this.lockType == LockType.NAMED_MUTEX_MULTIPLE)
@@ -57,10 +63,17 @@ public class DataOperationThread implements Runnable
           SharedData.incrementNamedMutex(accId, x);
         }
       }
+      try
+      {
+        Thread.sleep(1);
+      }
+      catch (InterruptedException e)
+      {
+      }
     }
   }
 
-  public void stop()
+  public void close()
   {
     this.go = false;
   }

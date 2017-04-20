@@ -14,7 +14,6 @@ public class NamedMutex
 
   protected NamedMutex(StampedLock lock, String name, long stamp)
   {
-    System.out.println("Got one");
     this.lock = lock;
     this.name = name;
     this.stamp = stamp;
@@ -23,7 +22,6 @@ public class NamedMutex
   public void unlock()
   {
     this.lock.unlockWrite(this.stamp);
-    System.out.println("released one");
   }
 
   public String getName()
