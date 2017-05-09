@@ -19,4 +19,8 @@ public class MatchmakingEngineConfig
    * Each player has a rating difference range that it uses to match against other players. This range will increase with each second by the amount set here.
    */
   public double ratingDifferenceIncreasePerSecond = 1;
+  /**
+   * If specified, it will determine the maximum amount of rating difference between two players for a match to be found.
+   */
+  public Optional<Double> maxRatingDifference = Optional.empty();
 }

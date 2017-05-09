@@ -58,6 +58,7 @@ public abstract class MaloWProcess
   {
     NOT_STARTED,
     RUNNING,
+    WAITING,
     FINISHED
   }
 
@@ -144,7 +145,10 @@ public abstract class MaloWProcess
   {
     try
     {
-      return this.eventQueue.take();
+      this.state = ProcessState.WAITING;
+      ProcessEvent ev = this.eventQueue.take();
+      this.state = ProcessState.RUNNING;
+      return ev;
     }
     catch (InterruptedException e)
     {

@@ -2,8 +2,7 @@ package com.github.malow.malowlib.matchmakingengine;
 
 public class MatchmakingPlayer implements Comparable<MatchmakingPlayer>
 {
-
-  public Long playerId;
+  public Integer playerId;
   public Double rating;
   public Long timeAdded;
 
@@ -11,12 +10,12 @@ public class MatchmakingPlayer implements Comparable<MatchmakingPlayer>
   {
   }
 
-  public MatchmakingPlayer(Long playerId)
+  public MatchmakingPlayer(Integer playerId)
   {
     this.playerId = playerId;
   }
 
-  public MatchmakingPlayer(Long playerId, Double rating, Long timeAdded)
+  public MatchmakingPlayer(Integer playerId, Double rating, Long timeAdded)
   {
     this.playerId = playerId;
     this.rating = rating;

@@ -27,7 +27,7 @@ public class MatchmakingEngineSimulation extends MatchmakingEngineTestFixture
     this.matchmakingEngine.updateConfig(config);
     Long startTime = System.currentTimeMillis();
     Long timeElapsed = 0L;
-    for (Long l = 0L; l < NR_OF_ENQUEUES; l++)
+    for (Integer l = 0; l < NR_OF_ENQUEUES; l++)
     {
       this.matchmakingEngine.enqueue(l, 1500.0 + generateRandom(1000));
     }
@@ -42,13 +42,13 @@ public class MatchmakingEngineSimulation extends MatchmakingEngineTestFixture
       timeElapsed = System.currentTimeMillis() - startTime;
     }
     assertThat(this.testListener.matches.size()).isEqualTo(EXPECTED_MATCHES);
-    Set<Long> playersWithMatchIds = new HashSet<>();
+    Set<Integer> playersWithMatchIds = new HashSet<>();
     for (MatchmakingResult result : this.testListener.matches)
     {
       assertThat(playersWithMatchIds.add(result.player1.playerId)).isTrue();
       assertThat(playersWithMatchIds.add(result.player2.playerId)).isTrue();
     }
-    for (Long l = 0L; l < NR_OF_ENQUEUES; l++)
+    for (Integer l = 0; l < NR_OF_ENQUEUES; l++)
     {
       assertThat(playersWithMatchIds).contains(l);
     }

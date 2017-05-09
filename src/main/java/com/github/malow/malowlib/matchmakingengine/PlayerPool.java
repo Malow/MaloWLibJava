@@ -7,10 +7,15 @@ import com.github.malow.malowlib.ConcurrentSortedDoubleLinkedList;
 
 public class PlayerPool extends ConcurrentSortedDoubleLinkedList<MatchmakingPlayer>
 {
+  private Double maxRatingDifference;
 
   public PlayerPool(MatchmakingEngineConfig config)
   {
     this.config = config;
+    if (config.maxRatingDifference.isPresent())
+    {
+      this.maxRatingDifference = config.maxRatingDifference.get();
+    }
   }
 
   private MatchmakingEngineConfig config;
@@ -61,6 +66,11 @@ public class PlayerPool extends ConcurrentSortedDoubleLinkedList<MatchmakingPlay
 
   private double getMaxRatingDifferenceForSearch(Long timeSinceSearchStart)
   {
+    if (this.maxRatingDifference != null)
+    {
+      return Math.min(this.config.initialRatingDifference + timeSinceSearchStart * (this.config.ratingDifferenceIncreasePerSecond / 1000.0),
+          this.maxRatingDifference);
+    }
     return this.config.initialRatingDifference + timeSinceSearchStart * (this.config.ratingDifferenceIncreasePerSecond / 1000.0);
   }
 }

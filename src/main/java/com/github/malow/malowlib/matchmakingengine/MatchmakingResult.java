@@ -2,7 +2,6 @@ package com.github.malow.malowlib.matchmakingengine;
 
 public class MatchmakingResult
 {
-
   public MatchmakingPlayer player1;
   public MatchmakingPlayer player2;
 

@@ -11,7 +11,6 @@ public class MatchmakingEngine extends MaloWProcess
 
   public static class QueuePlayerEvent extends ProcessEvent
   {
-
     public boolean enqueue;
     public MatchmakingPlayer player;
 
@@ -33,7 +32,7 @@ public class MatchmakingEngine extends MaloWProcess
     this.playerPool = new PlayerPool(config);
   }
 
-  public void enqueue(Long playerId, Double rating)
+  public void enqueue(Integer playerId, Double rating)
   {
     MatchmakingPlayer player = new MatchmakingPlayer();
     player.playerId = playerId;
@@ -42,7 +41,7 @@ public class MatchmakingEngine extends MaloWProcess
     this.putEvent(new QueuePlayerEvent(true, player));
   }
 
-  public void dequeue(Long playerId)
+  public void dequeue(Integer playerId)
   {
     MatchmakingPlayer player = new MatchmakingPlayer();
     player.playerId = playerId;
@@ -130,5 +129,10 @@ public class MatchmakingEngine extends MaloWProcess
   @Override
   public void closeSpecific()
   {
+  }
+
+  public void clearQueue()
+  {
+    this.playerPool.clear();
   }
 }

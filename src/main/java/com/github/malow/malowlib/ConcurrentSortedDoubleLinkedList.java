@@ -4,7 +4,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class ConcurrentSortedDoubleLinkedList<T extends Comparable<T>>
 {
-
   public static class Node<T>
   {
     public Node<T> previous;
@@ -214,5 +213,13 @@ public class ConcurrentSortedDoubleLinkedList<T extends Comparable<T>>
       current = current.next;
     }
     return builder.toString();
+  }
+
+  public void clear()
+  {
+    this.lock();
+    this.first = null;
+    this.size = 0;
+    this.unlock();
   }
 }
