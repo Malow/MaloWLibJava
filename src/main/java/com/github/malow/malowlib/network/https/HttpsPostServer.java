@@ -54,7 +54,7 @@ public class HttpsPostServer
     return this.port;
   }
 
-  public void createContext(String path, HttpsPostHandler handler)
+  public void createContext(String path, HttpsJsonPostHandler<?> handler)
   {
     this.server.createContext(path, handler);
   }
