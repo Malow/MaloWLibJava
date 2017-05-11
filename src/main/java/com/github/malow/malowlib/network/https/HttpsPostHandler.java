@@ -21,13 +21,15 @@ public abstract class HttpsPostHandler implements HttpHandler
   @Override
   public void handle(HttpExchange t)
   {
+    String request = getRequest(t);
     try
     {
-      String response = this.handleRequestAndGetResponse(getRequest(t));
+      String response = this.handleRequestAndGetResponse(request);
       sendResponse(t, 200, response);
     }
     catch (BadRequestException e)
     {
+      MaloWLogger.info("Bad request received at " + t.getRequestURI().toString() + ": " + request);
       sendResponse(t, 400, "{\"result\":false,\"error\":\"400: Bad Request\"}");
     }
   }
@@ -51,15 +53,19 @@ public abstract class HttpsPostHandler implements HttpHandler
 
   protected static <T extends HttpsPostRequest> T createValidJsonRequest(String request, Class<T> clazz) throws BadRequestException
   {
-    T req = GsonSingleton.fromJson(request, clazz);
-    if (req != null && req.isValid())
+    try
     {
-      return req;
+      T req = GsonSingleton.fromJson(request, clazz);
+      if (req != null && req.isValid())
+      {
+        return req;
+      }
     }
-    else
+    catch (Exception e)
     {
-      throw new BadRequestException();
+
     }
+    throw new BadRequestException();
   }
 
   private static String getRequest(HttpExchange t)
