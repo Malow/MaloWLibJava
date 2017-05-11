@@ -74,6 +74,7 @@ public class MatchmakingEngine extends MaloWProcess
       List<MatchmakingResult> results = this.playerPool.createMatches();
       for (MatchmakingResult result : results)
       {
+        MaloWLogger.info("MatchmakingEngine found match between player ids: " + result.player1.playerId + " and " + result.player2.playerId + ".");
         this.matchListener.putEvent(new MatchFoundEvent(result));
       }
       if (this.config.matchFinderInterval.isPresent())
@@ -115,10 +116,12 @@ public class MatchmakingEngine extends MaloWProcess
         QueuePlayerEvent queuePlayerEvent = (QueuePlayerEvent) processEvent;
         if (queuePlayerEvent.enqueue)
         {
+          MaloWLogger.info("MatchmakingEngine enqueued player with id " + queuePlayerEvent.player.playerId + ".");
           this.playerPool.add(queuePlayerEvent.player);
         }
         else
         {
+          MaloWLogger.info("MatchmakingEngine dequeued player with id " + queuePlayerEvent.player.playerId + ".");
           this.playerPool.remove(queuePlayerEvent.player);
         }
       }

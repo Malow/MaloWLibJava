@@ -34,7 +34,7 @@ public class ResultSetConverter
     }
     else
     {
-      throw new Exception("Type not supported: " + fieldClass);
+      throw new Exception("Type not supported in ResultSetConverter: " + fieldClass);
     }
   }
 }

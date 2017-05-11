@@ -28,6 +28,7 @@ import com.sun.net.httpserver.HttpsServer;
 
 public class HttpsPostServer
 {
+  private int port;
   private HttpsServer server = null;
   private ExecutorService executorService = null;
 
@@ -46,6 +47,11 @@ public class HttpsPostServer
     {
       MaloWLogger.error("Bad ssl config: " + config.sslConfig, new Exception());
     }
+  }
+
+  public int getPort()
+  {
+    return this.port;
   }
 
   public void createContext(String path, HttpsPostHandler handler)
@@ -107,6 +113,7 @@ public class HttpsPostServer
 
   private void init(int port, KeyStore ks, String sslPassword, boolean useMultipleThreads) throws Exception
   {
+    this.port = port;
     this.server = HttpsServer.create(new InetSocketAddress(port), 0);
     SSLContext sslContext = SSLContext.getInstance("TLS");
 

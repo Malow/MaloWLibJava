@@ -85,6 +85,7 @@ public class HttpsPostClient
     {
     }
   } };
+
   private static HostnameVerifier hv = new HostnameVerifier()
   {
     @Override

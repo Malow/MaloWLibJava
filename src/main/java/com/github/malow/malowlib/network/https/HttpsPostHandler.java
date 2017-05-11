@@ -15,7 +15,7 @@ public abstract class HttpsPostHandler implements HttpHandler
 {
   public static class BadRequestException extends Exception
   {
-    private static final long serialVersionUID = 136803662087035484L;
+    private static final long serialVersionUID = 1L;
   }
 
   @Override

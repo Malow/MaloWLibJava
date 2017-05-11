@@ -14,9 +14,8 @@ import java.util.List;
 
 public class MaloWLogger
 {
-
   private static final String FOLDER = "logs/";
-  private static LogLevel threshold = LogLevel.INFO;
+  private static LogLevel threshold = LogLevel.WARNING;
   private static boolean enabled = true;
   private static boolean logToFile = true;
   private static boolean logToSyso = true;

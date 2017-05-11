@@ -311,6 +311,7 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     }
     statement.executeUpdate(sql + ")");
     statement.close();
+    MaloWLogger.info("Accessor dropped and created table for " + this.entityClass.getSimpleName() + ".");
   }
 
   protected int populateStatement(PreparedStatement statement, Entity entity) throws Exception

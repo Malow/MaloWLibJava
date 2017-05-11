@@ -102,6 +102,7 @@ public class DatabaseConnection
             break;
         }
         databaseConnections.put(key, connection);
+        MaloWLogger.info("Database-connection created for " + databaseName + " as " + databaseType.toString() + ".");
       }
       catch (SQLException e)
       {

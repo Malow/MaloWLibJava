@@ -168,7 +168,7 @@ public abstract class MaloWProcess
     if (this.eventQueue.size() > this.warningThresholdEventQueue)
     {
       this.warningThresholdEventQueue *= 2;
-      MaloWLogger.warning("Warning, EventQueue of process " + this.processName + " has " + this.eventQueue.size() + " unread events.");
+      MaloWLogger.warning("eventQueue of process " + this.processName + " has " + this.eventQueue.size() + " unread events.");
     }
   }
 
