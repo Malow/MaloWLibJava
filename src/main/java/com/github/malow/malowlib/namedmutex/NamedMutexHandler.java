@@ -1,6 +1,7 @@
 package com.github.malow.malowlib.namedmutex;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.StampedLock;
 
@@ -35,6 +36,16 @@ public class NamedMutexHandler
     NamedMutexHandler.locks = new ConcurrentHashMap<String, StampedLock>();
   }
 
+  public static NamedMutex getAndLockByClassAndId(Class<?> clazz, int id)
+  {
+    return getAndLockByName(classAndIdToString(clazz, id));
+  }
+
+  public static NamedMutex getAndLockByClassAndName(Class<?> clazz, String name)
+  {
+    return getAndLockByName(classAndNameToString(clazz, name));
+  }
+
   public static NamedMutex getAndLockByName(String name)
   {
     StampedLock lock = locks.get(name);
@@ -55,6 +66,16 @@ public class NamedMutexHandler
    * Locks and returns multiple Mutexes at once. This method is to be used when multiple locks are needed at the same time for something. The method is
    * synchronized meaning that performance wont be great if you have multiple threads calling this often.
    */
+  public static synchronized NamedMutexList getAndLockMultipleByClassAndIds(Class<?> clazz, Integer... ids)
+  {
+    return getAndLockMultipleByNames(Arrays.stream(ids).map(id -> classAndIdToString(clazz, id)).toArray(String[]::new));
+  }
+
+  public static synchronized NamedMutexList getAndLockMultipleByClassAndIds(Class<?> clazz, String... names)
+  {
+    return getAndLockMultipleByNames(Arrays.stream(names).map(name -> classAndNameToString(clazz, name)).toArray(String[]::new));
+  }
+
   public static synchronized NamedMutexList getAndLockMultipleByNames(String... names)
   {
     ArrayList<NamedMutex> locks = new ArrayList<NamedMutex>();
@@ -63,5 +84,15 @@ public class NamedMutexHandler
       locks.add(NamedMutexHandler.getAndLockByName(name));
     }
     return new NamedMutexList(locks);
+  }
+
+  private static String classAndIdToString(Class<?> clazz, int id)
+  {
+    return clazz.getSimpleName() + ":" + id;
+  }
+
+  private static String classAndNameToString(Class<?> clazz, String name)
+  {
+    return clazz.getSimpleName() + ":" + name;
   }
 }
