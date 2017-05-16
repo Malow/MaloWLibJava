@@ -64,7 +64,12 @@ public class MatchmakingPlayer implements Comparable<MatchmakingPlayer>
   @Override
   public int compareTo(MatchmakingPlayer other)
   {
-    return this.rating.compareTo(other.rating);
+    if (this.playerId.equals(other.playerId))
+    {
+      return 0;
+    }
+    int ratingComparison = this.rating.compareTo(other.rating);
+    return ratingComparison != 0 ? ratingComparison : this.playerId.compareTo(other.playerId);
   }
 
   @Override

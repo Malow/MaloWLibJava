@@ -18,22 +18,38 @@ public class MatchmakingEngine extends MaloWProcess
     this.playerPool = new PlayerPool(config);
   }
 
-  public void enqueue(Integer playerId, Double rating)
+  public boolean enqueue(Integer playerId, Double rating)
   {
     MatchmakingPlayer player = new MatchmakingPlayer();
     player.playerId = playerId;
     player.rating = rating;
     player.timeAdded = System.currentTimeMillis();
-    MaloWLogger.info("MatchmakingEngine enqueued player with id " + player.playerId + ".");
-    this.playerPool.add(player);
+    if (this.playerPool.add(player))
+    {
+      MaloWLogger.info("MatchmakingEngine enqueued player with id " + player.playerId + ".");
+      return true;
+    }
+    else
+    {
+      MaloWLogger.info("MatchmakingEngine tried to enqueue player with id " + player.playerId + " but the player was already in queue.");
+      return false;
+    }
   }
 
   public boolean dequeue(Integer playerId)
   {
     MatchmakingPlayer player = new MatchmakingPlayer();
     player.playerId = playerId;
-    MaloWLogger.info("MatchmakingEngine dequeued player with id " + player.playerId + ".");
-    return this.playerPool.remove(player);
+    if (this.playerPool.remove(player))
+    {
+      MaloWLogger.info("MatchmakingEngine dequeued player with id " + player.playerId + ".");
+      return true;
+    }
+    else
+    {
+      MaloWLogger.info("MatchmakingEngine tried to dequeue player with id " + player.playerId + " but the player was not in queue.");
+      return false;
+    }
   }
 
   public void updateConfig(MatchmakingEngineConfig config)

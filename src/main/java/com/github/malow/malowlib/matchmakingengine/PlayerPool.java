@@ -1,7 +1,6 @@
 package com.github.malow.malowlib.matchmakingengine;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -34,10 +33,19 @@ public class PlayerPool extends ConcurrentSkipListSet<MatchmakingPlayer>
     {
       if (previous != null && this.isSuitableMatch(player, previous))
       {
-        this.removeAll(Arrays.asList(player, previous));
-        resultList.add(new MatchmakingResult(player, previous));
-        previous = null;
-        continue;
+        if (this.remove(player))
+        {
+          if (this.remove(previous))
+          {
+            resultList.add(new MatchmakingResult(player, previous));
+            previous = null;
+            continue;
+          }
+          else
+          {
+            this.add(player);
+          }
+        }
       }
       previous = player;
     }
