@@ -1,12 +1,13 @@
 package com.github.malow.malowlib.matchmakingengine;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ConcurrentSkipListSet;
 
-import com.github.malow.malowlib.ConcurrentSortedDoubleLinkedList;
-
-public class PlayerPool extends ConcurrentSortedDoubleLinkedList<MatchmakingPlayer>
+public class PlayerPool extends ConcurrentSkipListSet<MatchmakingPlayer>
 {
+  private static final long serialVersionUID = 1L;
   private Double maxRatingDifference;
 
   public PlayerPool(MatchmakingEngineConfig config)
@@ -28,29 +29,18 @@ public class PlayerPool extends ConcurrentSortedDoubleLinkedList<MatchmakingPlay
   public List<MatchmakingResult> createMatches()
   {
     List<MatchmakingResult> resultList = new ArrayList<>();
-    this.lock();
-    Node<MatchmakingPlayer> current = this.first;
-    if (current != null)
+    MatchmakingPlayer previous = null;
+    for (MatchmakingPlayer player : this)
     {
-      current = current.next;
-    }
-    while (current != null)
-    {
-      if (current.previous != null && this.isSuitableMatch(current.item, current.previous.item))
+      if (previous != null && this.isSuitableMatch(player, previous))
       {
-        Node<MatchmakingPlayer> previous = current.previous;
-        resultList.add(new MatchmakingResult(current.item, previous.item));
-        this.remove(previous);
-        Node<MatchmakingPlayer> next = current.next;
-        this.remove(current);
-        current = next;
+        this.removeAll(Arrays.asList(player, previous));
+        resultList.add(new MatchmakingResult(player, previous));
+        previous = null;
+        continue;
       }
-      else
-      {
-        current = current.next;
-      }
+      previous = player;
     }
-    this.unlock();
     return resultList;
   }
 

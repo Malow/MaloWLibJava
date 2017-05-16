@@ -160,5 +160,4 @@ public class ConcurrentSortedDoubleLinkedListTest
     }
     assertThat(i).isEqualTo(threadCount * additionsPerThread);
   }
-
 }

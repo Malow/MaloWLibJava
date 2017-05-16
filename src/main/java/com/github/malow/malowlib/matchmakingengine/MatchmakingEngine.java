@@ -4,23 +4,9 @@ import java.util.List;
 
 import com.github.malow.malowlib.MaloWLogger;
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
-import com.github.malow.malowlib.malowprocess.ProcessEvent;
 
 public class MatchmakingEngine extends MaloWProcess
 {
-
-  public static class QueuePlayerEvent extends ProcessEvent
-  {
-    public boolean enqueue;
-    public MatchmakingPlayer player;
-
-    public QueuePlayerEvent(boolean enqueue, MatchmakingPlayer player)
-    {
-      this.enqueue = enqueue;
-      this.player = player;
-    }
-  }
-
   private PlayerPool playerPool;
   private MaloWProcess matchListener;
   private MatchmakingEngineConfig config;
@@ -38,14 +24,16 @@ public class MatchmakingEngine extends MaloWProcess
     player.playerId = playerId;
     player.rating = rating;
     player.timeAdded = System.currentTimeMillis();
-    this.putEvent(new QueuePlayerEvent(true, player));
+    MaloWLogger.info("MatchmakingEngine enqueued player with id " + player.playerId + ".");
+    this.playerPool.add(player);
   }
 
-  public void dequeue(Integer playerId)
+  public boolean dequeue(Integer playerId)
   {
     MatchmakingPlayer player = new MatchmakingPlayer();
     player.playerId = playerId;
-    this.putEvent(new QueuePlayerEvent(false, player));
+    MaloWLogger.info("MatchmakingEngine dequeued player with id " + player.playerId + ".");
+    return this.playerPool.remove(player);
   }
 
   public void updateConfig(MatchmakingEngineConfig config)
@@ -61,7 +49,7 @@ public class MatchmakingEngine extends MaloWProcess
 
   public int getNumberOfPlayersInQueue()
   {
-    return this.playerPool.getSize();
+    return this.playerPool.size();
   }
 
   @Override
@@ -70,7 +58,6 @@ public class MatchmakingEngine extends MaloWProcess
     while (this.stayAlive)
     {
       long startTime = System.currentTimeMillis();
-      this.handleAllPendingEvents();
       List<MatchmakingResult> results = this.playerPool.createMatches();
       for (MatchmakingResult result : results)
       {
@@ -88,44 +75,14 @@ public class MatchmakingEngine extends MaloWProcess
         {
           try
           {
-            // Handle events while sleeping between match-iterations.
-            Long lastIteration = System.currentTimeMillis();
-            while (timeToSleep > 0)
-            {
-              this.handleAllPendingEvents();
-              Thread.sleep(5);
-              timeToSleep -= System.currentTimeMillis() - lastIteration;
-              lastIteration = System.currentTimeMillis();
-            }
+            Thread.sleep(timeToSleep);
           }
           catch (Exception e)
           {
+            MaloWLogger.error("Failed to sleep", e);
           }
         }
       }
-    }
-  }
-
-  private void handleAllPendingEvents()
-  {
-    ProcessEvent processEvent = this.peekEvent();
-    while (processEvent != null)
-    {
-      if (processEvent instanceof QueuePlayerEvent)
-      {
-        QueuePlayerEvent queuePlayerEvent = (QueuePlayerEvent) processEvent;
-        if (queuePlayerEvent.enqueue)
-        {
-          MaloWLogger.info("MatchmakingEngine enqueued player with id " + queuePlayerEvent.player.playerId + ".");
-          this.playerPool.add(queuePlayerEvent.player);
-        }
-        else
-        {
-          MaloWLogger.info("MatchmakingEngine dequeued player with id " + queuePlayerEvent.player.playerId + ".");
-          this.playerPool.remove(queuePlayerEvent.player);
-        }
-      }
-      processEvent = this.peekEvent();
     }
   }
 
