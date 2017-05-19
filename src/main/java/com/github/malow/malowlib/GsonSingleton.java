@@ -17,21 +17,53 @@ public class GsonSingleton
 
   public static String toJson(Object obj)
   {
-    return gson.toJson(obj);
+    try
+    {
+      return gson.toJson(obj);
+    }
+    catch (Exception e)
+    {
+      MaloWLogger.error("Failed to parse object of class " + obj.getClass().getSimpleName() + " into string.", e);
+      return null;
+    }
   }
 
   public static String toPrettyJson(Object obj)
   {
-    return prettyGson.toJson(obj);
+    try
+    {
+      return prettyGson.toJson(obj);
+    }
+    catch (Exception e)
+    {
+      MaloWLogger.error("Failed to parse object of class " + obj.getClass().getSimpleName() + " into string.", e);
+      return null;
+    }
   }
 
   public static <T> T fromJson(String json, Class<T> targetClass)
   {
-    return gson.fromJson(json, targetClass);
+    try
+    {
+      return gson.fromJson(json, targetClass);
+    }
+    catch (Exception e)
+    {
+      MaloWLogger.error("Failed to parse String " + json + " into an object of class " + targetClass.getSimpleName(), e);
+      return null;
+    }
   }
 
   public static <T> T fromJson(String json, Type type)
   {
-    return gson.fromJson(json, type);
+    try
+    {
+      return gson.fromJson(json, type);
+    }
+    catch (Exception e)
+    {
+      MaloWLogger.error("Failed to parse String " + json + " into an object of type " + type.getTypeName(), e);
+      return null;
+    }
   }
 }

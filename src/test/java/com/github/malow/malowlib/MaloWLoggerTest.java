@@ -2,6 +2,8 @@ package com.github.malow.malowlib;
 
 import org.junit.Test;
 
+import com.google.gson.Gson;
+
 public class MaloWLoggerTest
 {
   public class TestException extends Exception
@@ -33,7 +35,7 @@ public class MaloWLoggerTest
   {
     try
     {
-      GsonSingleton.fromJson("bad", TestException.class);
+      new Gson().fromJson("bad", TestException.class);
     }
     catch (Exception e)
     {

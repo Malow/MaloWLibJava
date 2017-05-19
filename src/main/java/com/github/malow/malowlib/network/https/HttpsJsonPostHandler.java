@@ -45,14 +45,13 @@ public abstract class HttpsJsonPostHandler<RequestClass extends HttpsPostRequest
     {
       RequestClass request = this.createValidJsonRequest(stringRequest);
       HttpsPostResponse response = this.handleRequestAndGetResponse(request);
-      try
+      String stringResponse = GsonSingleton.toJson(response);
+      if (stringResponse != null)
       {
-        String stringResponse = GsonSingleton.toJson(response);
         sendResponse(t, 200, stringResponse);
       }
-      catch (Exception e)
+      else
       {
-        MaloWLogger.error("Failed to turn response into json", e);
         sendResponse(t, 500, "Unexpected internal error");
       }
     }
@@ -82,17 +81,10 @@ public abstract class HttpsJsonPostHandler<RequestClass extends HttpsPostRequest
 
   private RequestClass createValidJsonRequest(String request) throws BadRequestException
   {
-    try
+    RequestClass req = GsonSingleton.fromJson(request, this.requestClass);
+    if (req != null && req.isValid())
     {
-      RequestClass req = GsonSingleton.fromJson(request, this.requestClass);
-      if (req != null && req.isValid())
-      {
-        return req;
-      }
-    }
-    catch (Exception e)
-    {
-
+      return req;
     }
     throw new BadRequestException();
   }

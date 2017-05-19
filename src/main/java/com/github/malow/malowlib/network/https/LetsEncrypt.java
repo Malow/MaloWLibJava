@@ -48,6 +48,22 @@ public class LetsEncrypt
   private int port;
   private HttpServer httpServer;
 
+  public static void main(String[] args)
+  {
+    String domain = "malow.duckdns.org";
+    int port = 7777;
+
+    LetsEncrypt ct = new LetsEncrypt(domain, port);
+    try
+    {
+      ct.downloadCertificates();
+    }
+    catch (Exception e)
+    {
+      MaloWLogger.error("Failed to download certificates", e);
+    }
+  }
+
   /**
    *
    * @param domain
