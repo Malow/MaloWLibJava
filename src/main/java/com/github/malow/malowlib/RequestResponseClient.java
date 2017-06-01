@@ -2,14 +2,14 @@ package com.github.malow.malowlib;
 
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
-import com.github.malow.malowlib.network.NetworkChannel;
-import com.github.malow.malowlib.network.NetworkPacket;
+import com.github.malow.malowlib.network.MessageNetworkChannel;
+import com.github.malow.malowlib.network.NetworkMessage;
 
 public class RequestResponseClient extends MaloWProcess
 {
   private String ip;
   private int port;
-  private NetworkChannel nc;
+  private MessageNetworkChannel nc;
 
   private String response = null;
 
@@ -32,7 +32,7 @@ public class RequestResponseClient extends MaloWProcess
       throw new ConnectionBrokenException();
     }
 
-    this.nc.sendData(msg);
+    this.nc.sendMessage(msg);
 
     while (this.response == null)
     {
@@ -62,16 +62,16 @@ public class RequestResponseClient extends MaloWProcess
   @Override
   public void life()
   {
-    this.nc = new NetworkChannel(this.ip, this.port);
+    this.nc = new MessageNetworkChannel(this.ip, this.port);
     this.nc.setNotifier(this);
     this.nc.start();
 
     while (this.stayAlive)
     {
       ProcessEvent ev = this.waitEvent();
-      if (ev instanceof NetworkPacket)
+      if (ev instanceof NetworkMessage)
       {
-        this.response = ((NetworkPacket) ev).getMessage();
+        this.response = ((NetworkMessage) ev).getMessage();
       }
     }
 

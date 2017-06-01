@@ -7,12 +7,18 @@ import java.net.Socket;
 import com.github.malow.malowlib.MaloWLogger;
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
 
-public abstract class NetworkServer extends MaloWProcess
+/**
+ * Listens and accepts new TCP connections at specified port and sends ClientConnectedEvents to the specified notifier when a client connects.
+ *
+ */
+public abstract class SocketListener extends MaloWProcess
 {
+  private MaloWProcess notifier;
   private ServerSocket serverSocket = null;
 
-  public NetworkServer(int port)
+  public SocketListener(int port, MaloWProcess notifier)
   {
+    this.notifier = notifier;
     try
     {
       this.serverSocket = new ServerSocket(port);
@@ -24,7 +30,7 @@ public abstract class NetworkServer extends MaloWProcess
     }
   }
 
-  public NetworkChannel listenForNewClients()
+  private NetworkChannel listenForNewClient()
   {
     try
     {
@@ -36,35 +42,32 @@ public abstract class NetworkServer extends MaloWProcess
     }
     catch (IOException e)
     {
-      MaloWLogger.error("Failed to Listen for new connections.", e);
+      if (this.stayAlive)
+      {
+        MaloWLogger.error("Failed to Listen for new connections.", e);
+      }
     }
     return null;
   }
 
-  protected NetworkChannel createNetworkChannel(Socket socket)
-  {
-    return new NetworkChannel(socket);
-  }
+  protected abstract NetworkChannel createNetworkChannel(Socket socket);
 
   @Override
   public void life()
   {
     while (this.stayAlive)
     {
-      NetworkChannel nc = this.listenForNewClients();
+      NetworkChannel nc = this.listenForNewClient();
       if (nc != null && this.stayAlive)
       {
-        this.clientConnected(nc);
+        this.notifier.putEvent(new ClientConnectedEvent(nc));
       }
     }
   }
 
-  public abstract void clientConnected(NetworkChannel nc);
-
   @Override
   public void closeSpecific()
   {
-    this.stayAlive = false;
     try
     {
       this.serverSocket.close();
@@ -73,7 +76,5 @@ public abstract class NetworkServer extends MaloWProcess
     {
       MaloWLogger.error("Failed to close socket in Server.", e);
     }
-
-    this.waitUntillDone();
   }
 }

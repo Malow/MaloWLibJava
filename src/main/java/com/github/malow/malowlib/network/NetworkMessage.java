@@ -2,12 +2,12 @@ package com.github.malow.malowlib.network;
 
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
 
-public class NetworkPacket extends ProcessEvent
+public class NetworkMessage extends ProcessEvent
 {
   private String message;
-  private NetworkChannel sender;
+  private MessageNetworkChannel sender;
 
-  public NetworkPacket(String message, NetworkChannel sender)
+  public NetworkMessage(String message, MessageNetworkChannel sender)
   {
     this.message = message;
     this.sender = sender;
@@ -18,7 +18,7 @@ public class NetworkPacket extends ProcessEvent
     return this.message;
   }
 
-  public NetworkChannel getSender()
+  public MessageNetworkChannel getSender()
   {
     return this.sender;
   }
