@@ -1,15 +1,18 @@
 package com.github.malow.malowlib.malowprocess;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.github.malow.malowlib.MaloWLogger;
 
 public abstract class MaloWProcess
 {
-  private class ProcThread extends Thread
+  class ProcessThread extends Thread
   {
-    public ProcThread(String processName)
+    public ProcessThread(String processName)
     {
       super(processName);
     }
@@ -17,40 +20,7 @@ public abstract class MaloWProcess
     @Override
     public void run()
     {
-      MaloWProcess.this.state = ProcessState.RUNNING;
-      try
-      {
-        MaloWProcess.this.life();
-      }
-      catch (Exception e)
-      {
-        MaloWLogger.error("Uncaught unchecked Exception in MaloWProcess:Life method in thread " + this.getName(), e);
-      }
-      MaloWProcess.this.state = ProcessState.FINISHED;
-    }
-
-    public synchronized void resumeThread()
-    {
-      try
-      {
-        this.notifyAll();
-      }
-      catch (Exception e)
-      {
-        MaloWLogger.error("resumeThread failed", e);
-      }
-    }
-
-    public synchronized void suspendThread()
-    {
-      try
-      {
-        this.wait();
-      }
-      catch (Exception e)
-      {
-        MaloWLogger.error("suspendThread failed", e);
-      }
+      MaloWProcess.this.runProcess();
     }
   }
 
@@ -59,44 +29,87 @@ public abstract class MaloWProcess
     NOT_STARTED,
     RUNNING,
     WAITING,
-    FINISHED
+    FINISHED,
+    FAILED
   }
 
-  private static long nextID = 0;
+  private volatile ProcessState state = ProcessState.NOT_STARTED;
+
+  private static volatile long nextID = 0;
 
   private static synchronized long getAndIncrementId()
   {
     return nextID++;
   }
 
+  private long id;
+
   public static int DEFAULT_WARNING_THRESHOLD_EVENTQUEUE_FULL = 100;
   public int warningThresholdEventQueue = DEFAULT_WARNING_THRESHOLD_EVENTQUEUE_FULL;
   public int unimportantEventThreshold = 10;
 
-  protected boolean stayAlive = true;
-  private ProcThread thread;
-  private BlockingQueue<ProcessEvent> eventQueue;
-  private ProcessState state;
-  private long id;
+  protected volatile boolean stayAlive = true;
+  private volatile List<ProcessThread> threads = new ArrayList<>();
+  private BlockingQueue<ProcessEvent> eventQueue = new LinkedBlockingQueue<>();
   private String processName;
+  private AtomicInteger waitingThreads = new AtomicInteger();
 
   public MaloWProcess()
   {
-    this.create(this.getClass().getSimpleName());
+    this.create(this.getClass().getSimpleName(), 1);
+  }
+
+  public MaloWProcess(int threadCount)
+  {
+    this.create(this.getClass().getSimpleName(), threadCount);
   }
 
   public MaloWProcess(String processName)
   {
-    this.create(processName);
+    this.create(processName, 1);
   }
 
-  private void create(String processName)
+  public MaloWProcess(String processName, int threadCount)
+  {
+    this.create(processName, threadCount);
+  }
+
+  private void create(String processName, int threadCount)
   {
     this.id = getAndIncrementId();
     this.processName = "MalowProcess:" + processName + "#" + this.id;
-    this.state = ProcessState.NOT_STARTED;
-    this.eventQueue = new LinkedBlockingQueue<ProcessEvent>();
-    this.thread = new ProcThread(this.processName);
+    for (int i = 0; i < threadCount; i++)
+    {
+      if (threadCount == 1)
+      {
+        this.threads.add(new ProcessThread(this.processName));
+      }
+      else
+      {
+        this.threads.add(new ProcessThread(this.processName + "(" + this.threads.size() + "/" + threadCount + ")"));
+      }
+    }
+  }
+
+  private void runProcess()
+  {
+    try
+    {
+      this.life();
+      synchronized (this.threads)
+      {
+        this.threads.remove(Thread.currentThread());
+        if (this.threads.size() == 0)
+        {
+          this.state = ProcessState.FINISHED;
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      MaloWLogger.error("Uncaught unchecked Exception in MaloWProcess:Life method in thread " + Thread.currentThread().getName(), e);
+      this.state = ProcessState.FAILED;
+    }
   }
 
   public abstract void life();
@@ -105,59 +118,95 @@ public abstract class MaloWProcess
   {
     if (this.state == ProcessState.NOT_STARTED)
     {
-      this.thread.start();
+      this.state = ProcessState.RUNNING;
+      synchronized (this.threads)
+      {
+        this.threads.forEach(t -> t.start());
+      }
     }
-  }
-
-  public void suspend()
-  {
-    this.thread.suspendThread();
-  }
-
-  public void resume()
-  {
-    this.thread.resumeThread();
+    else
+    {
+      MaloWLogger.warning("Tried to start a MaloWProcess that was already running: " + this.processName);
+    }
   }
 
   public void close()
   {
-    this.stayAlive = false;
-    ProcessEvent ev = new ProcessEvent();
-    this.putEvent(ev);
-    this.closeSpecific();
+    if (this.state == ProcessState.RUNNING)
+    {
+      this.stayAlive = false;
+      synchronized (this.threads)
+      {
+        this.threads.forEach(t -> t.interrupt());
+      }
+      this.closeSpecific();
+    }
+    else
+    {
+      MaloWLogger.warning("Tried to close a MaloWProcess that was not running: " + this.processName);
+    }
   }
 
-  public abstract void closeSpecific();
+  protected void closeSpecific()
+  {
+
+  }
+
+  public void closeAndWaitForCompletion()
+  {
+    this.close();
+    this.waitUntillDone();
+  }
 
   public void waitUntillDone()
   {
-    try
+    ProcessThread t = this.getFirstThread();
+    while (t != null)
     {
-      this.thread.join();
-    }
-    catch (InterruptedException e)
-    {
-      MaloWLogger.error("waitUntillDone failed for process " + this.processName, e);
+      try
+      {
+        t.join();
+      }
+      catch (InterruptedException e)
+      {
+        MaloWLogger.error("waitUntillDone failed for thread " + t.getName() + " in MaloWProcess " + this.processName, e);
+      }
+      t = this.getFirstThread();
     }
   }
 
-  public ProcessEvent waitEvent()
+  private ProcessThread getFirstThread()
   {
-    try
+    synchronized (this.threads)
     {
-      this.state = ProcessState.WAITING;
-      ProcessEvent ev = this.eventQueue.take();
-      this.state = ProcessState.RUNNING;
-      return ev;
-    }
-    catch (InterruptedException e)
-    {
-      MaloWLogger.error("waitEvent failed for process " + this.processName, e);
+      if (this.threads.size() > 0)
+      {
+        return this.threads.get(0);
+      }
     }
     return null;
   }
 
-  public ProcessEvent peekEvent()
+  protected ProcessEvent waitEvent()
+  {
+    try
+    {
+      this.waitingThreads.incrementAndGet();
+      ProcessEvent ev = this.eventQueue.take();
+      this.waitingThreads.decrementAndGet();
+      return ev;
+    }
+    catch (InterruptedException e)
+    {
+      if (this.stayAlive)
+      {
+        MaloWLogger.error("waitEvent failed for thread " + Thread.currentThread().getName() + " in MaloWProcess " + this.processName, e);
+      }
+    }
+    return null;
+  }
+
+  protected ProcessEvent peekEvent()
   {
     return this.eventQueue.poll();
   }
@@ -183,6 +232,10 @@ public abstract class MaloWProcess
 
   public ProcessState getState()
   {
+    if (this.state == ProcessState.RUNNING && this.waitingThreads.get() == this.threads.size())
+    {
+      return ProcessState.WAITING;
+    }
     return this.state;
   }
 

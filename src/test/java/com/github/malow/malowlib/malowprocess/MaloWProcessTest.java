@@ -7,105 +7,20 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.github.malow.malowlib.RandomNumberGenerator;
+import com.github.malow.malowlib.malowprocess.MaloWProcess.ProcessState;
 
-public class MaloWProcessTest
+public class MaloWProcessTest extends MaloWProcessFixture
 {
-  private static class DataPacket extends ProcessEvent
-  {
-    public long nr;
-
-    public DataPacket(long nr)
-    {
-      this.nr = nr;
-    }
-  }
-
-  private static class CloseEvent extends ProcessEvent
-  {
-
-  }
-
-  private static class Consumer extends MaloWProcess
-  {
-    private long myCount;
-
-    public Consumer()
-    {
-      this.myCount = 0;
-    }
-
-    @Override
-    public void life()
-    {
-      while (this.stayAlive)
-      {
-        ProcessEvent ev = this.waitEvent();
-        if (ev instanceof DataPacket)
-        {
-          this.myCount += ((DataPacket) ev).nr;
-        }
-        else if (ev instanceof CloseEvent)
-        {
-          this.close();
-        }
-      }
-    }
-
-    @Override
-    public void closeSpecific()
-    {
-    }
-
-    public long getCount()
-    {
-      return this.myCount;
-    }
-  }
-
-  private static class Producer extends MaloWProcess
-  {
-    private MaloWProcess target;
-    private long myCount;
-
-    public Producer(MaloWProcess target)
-    {
-      this.target = target;
-      this.myCount = 0;
-    }
-
-    @Override
-    public void life()
-    {
-      while (this.stayAlive)
-      {
-        long nr = RandomNumberGenerator.getRandomInt(0, 10);
-        this.myCount += nr;
-        DataPacket dp = new DataPacket(nr);
-        this.target.putEvent(dp);
-      }
-    }
-
-    @Override
-    public void closeSpecific()
-    {
-    }
-
-    public long getCount()
-    {
-      return this.myCount;
-    }
-  }
-
-  private static final int NR_OF_PRODUCERS = 1000;
-  private static final int RUN_FOR_MS = 2000;
 
   @Test
   public void testThatPutEventAndWaitEventIsThreadSafe() throws Exception
   {
+    final int NR_OF_PRODUCERS = 1000;
+    final int RUN_FOR_MS = 2000;
+
     Consumer consumer = new Consumer();
     consumer.start();
-    List<Producer> producers = new ArrayList<Producer>();
+    List<Producer> producers = new ArrayList<>();
     for (int i = 0; i < NR_OF_PRODUCERS; i++)
     {
       producers.add(new Producer(consumer));
@@ -134,5 +49,35 @@ public class MaloWProcessTest
       totalCount += producers.get(i).getCount();
     }
     assertEquals(totalCount, consumer.getCount());
+  }
+
+  @Test
+  public void testThatStatusIsSwappedBetweenWaitingAndRunning() throws InterruptedException
+  {
+    SleepProcess sleepProcess = new SleepProcess(2);
+    assertEquals(sleepProcess.getState(), ProcessState.NOT_STARTED);
+    sleepProcess.start();
+    Thread.sleep(10);
+    assertEquals(sleepProcess.getState(), ProcessState.WAITING);
+    sleepProcess.putEvent(new ProcessEvent());
+    assertEquals(sleepProcess.getState(), ProcessState.WAITING);
+    sleepProcess.putEvent(new ProcessEvent());
+    Thread.sleep(10);
+    assertEquals(sleepProcess.getState(), ProcessState.RUNNING);
+    Thread.sleep(110);
+    assertEquals(sleepProcess.getState(), ProcessState.WAITING);
+    sleepProcess.closeAndWaitForCompletion();
+  }
+
+  @Test
+  public void testMultiThreadProcess()
+  {
+    final int THREAD_COUNT = 100;
+    final int ITERATIONS_PER_THREAD = 200000;
+
+    MultiThreadProcess process = new MultiThreadProcess(THREAD_COUNT, ITERATIONS_PER_THREAD);
+    process.start();
+    process.waitUntillDone();
+    assertEquals(process.count.get(), THREAD_COUNT * ITERATIONS_PER_THREAD);
   }
 }
