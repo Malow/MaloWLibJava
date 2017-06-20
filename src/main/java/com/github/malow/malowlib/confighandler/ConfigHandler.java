@@ -83,6 +83,10 @@ public class ConfigHandler
               + ". Saved the old corrupted file as \"" + corruptedFile + "\" and created a new config-file with default values.");
           writeConfigToFile(corruptedFile, fileContents);
         }
+        else
+        {
+          MaloWLogger.info("No config file found: " + filePath + ". Creating a new one using default values");
+        }
       }
       writeConfigToFile(filePath, GsonSingleton.toPrettyJson(config));
     }

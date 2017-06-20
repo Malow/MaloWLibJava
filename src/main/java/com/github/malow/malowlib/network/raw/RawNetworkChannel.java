@@ -1,10 +1,11 @@
-package com.github.malow.malowlib.network;
+package com.github.malow.malowlib.network.raw;
 
 import java.io.IOException;
 import java.net.Socket;
 
 import com.github.malow.malowlib.MaloWLogger;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
+import com.github.malow.malowlib.network.NetworkChannel;
 
 public class RawNetworkChannel extends NetworkChannel
 {

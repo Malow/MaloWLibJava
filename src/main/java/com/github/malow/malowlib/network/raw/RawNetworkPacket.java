@@ -1,4 +1,4 @@
-package com.github.malow.malowlib.network;
+package com.github.malow.malowlib.network.raw;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;

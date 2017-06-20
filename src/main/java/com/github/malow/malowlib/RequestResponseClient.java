@@ -2,8 +2,8 @@ package com.github.malow.malowlib;
 
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
-import com.github.malow.malowlib.network.MessageNetworkChannel;
-import com.github.malow.malowlib.network.NetworkMessage;
+import com.github.malow.malowlib.network.message.MessageNetworkChannel;
+import com.github.malow.malowlib.network.message.NetworkMessage;
 
 public class RequestResponseClient extends MaloWProcess
 {

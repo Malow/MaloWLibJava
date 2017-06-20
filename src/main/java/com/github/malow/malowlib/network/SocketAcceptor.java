@@ -11,12 +11,12 @@ import com.github.malow.malowlib.malowprocess.MaloWProcess;
  * Listens and accepts new TCP connections at specified port and sends ClientConnectedEvents to the specified notifier when a client connects.
  *
  */
-public abstract class SocketListener extends MaloWProcess
+public abstract class SocketAcceptor extends MaloWProcess
 {
   private MaloWProcess notifier;
   private ServerSocket serverSocket = null;
 
-  public SocketListener(int port, MaloWProcess notifier)
+  public SocketAcceptor(int port, MaloWProcess notifier)
   {
     this.notifier = notifier;
     try

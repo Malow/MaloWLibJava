@@ -11,6 +11,9 @@ import org.junit.Before;
 
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
+import com.github.malow.malowlib.network.raw.RawNetworkChannel;
+import com.github.malow.malowlib.network.raw.RawNetworkChannelAcceptor;
+import com.github.malow.malowlib.network.raw.RawNetworkPacket;
 
 public class RawNetworkFixture
 {
@@ -98,7 +101,7 @@ public class RawNetworkFixture
   }
 
   protected TestServer testServer;
-  protected SocketListener testSocketlistener;
+  protected SocketAcceptor testSocketlistener;
   protected TestClient testClient;
 
   @Before
@@ -107,7 +110,7 @@ public class RawNetworkFixture
     this.testServer = new TestServer();
     this.testServer.start();
 
-    this.testSocketlistener = new RawSocketListener(PORT, this.testServer);
+    this.testSocketlistener = new RawNetworkChannelAcceptor(PORT, this.testServer);
     this.testSocketlistener.start();
 
     this.testClient = new TestClient();

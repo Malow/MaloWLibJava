@@ -1,4 +1,4 @@
-package com.github.malow.malowlib.network;
+package com.github.malow.malowlib.network.message;
 
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
 

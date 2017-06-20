@@ -7,6 +7,7 @@ import java.util.List;
 import org.junit.Test;
 
 import com.github.malow.malowlib.RandomNumberGenerator;
+import com.github.malow.malowlib.network.message.MessageNetworkChannel;
 
 public class MessageNetworkTest extends MessageNetworkFixture
 {

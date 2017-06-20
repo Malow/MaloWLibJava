@@ -11,6 +11,9 @@ import org.junit.Before;
 
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
+import com.github.malow.malowlib.network.message.MessageNetworkChannel;
+import com.github.malow.malowlib.network.message.MessageNetworkChannelAcceptor;
+import com.github.malow.malowlib.network.message.NetworkMessage;
 
 public class MessageNetworkFixture
 {
@@ -98,7 +101,7 @@ public class MessageNetworkFixture
   }
 
   protected TestServer testServer;
-  protected SocketListener testSocketlistener;
+  protected SocketAcceptor testSocketlistener;
   protected TestClient testClient;
 
   @Before
@@ -107,7 +110,7 @@ public class MessageNetworkFixture
     this.testServer = new TestServer();
     this.testServer.start();
 
-    this.testSocketlistener = new MessageSocketListener(PORT, this.testServer);
+    this.testSocketlistener = new MessageNetworkChannelAcceptor(PORT, this.testServer);
     this.testSocketlistener.start();
 
     this.testClient = new TestClient();

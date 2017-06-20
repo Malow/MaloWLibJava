@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.github.malow.malowlib.network.raw.RawNetworkChannel;
+
 public class RawNetworkTest extends RawNetworkFixture
 {
   @Test
