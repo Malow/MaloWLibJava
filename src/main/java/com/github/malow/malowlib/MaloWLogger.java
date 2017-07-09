@@ -49,6 +49,11 @@ public class MaloWLogger
     logForAllLevels("MaloWLogger: Application Launch", true);
   }
 
+  public static void init()
+  {
+
+  }
+
   public static void disableLogging()
   {
     enabled = false;

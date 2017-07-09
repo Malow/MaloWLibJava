@@ -95,9 +95,11 @@ public class NextEpisodeTabOpener
       return;
     }
     response = response.substring(response.indexOf("Today's TV Episodes"), response.indexOf("Tomorrow's TV Episodes"));
-    Matcher matcher = Pattern.compile(">([a-zA-Z '.,0-9()]+)</a><br>([0-9]+x[0-9]+)</div>").matcher(response);
+    Matcher matcher = Pattern.compile(">([a-zA-Z '.,0-9()]+)</a></h3><br>([0-9]+x[0-9]+)</div>").matcher(response);
+    boolean found = false;
     while (matcher.find())
     {
+      found = true;
       String showName = matcher.group(1);
       String episodeNumber = this.formatEpisodeNumber(matcher.group(2));
       showName = showName.replaceAll(" ", "+");
@@ -108,6 +110,14 @@ public class NextEpisodeTabOpener
         MaloWLogger.info("Opening tab for " + episode);
         Desktop.getDesktop().browse(new URI("https://rarbg.to/torrents.php?search=" + episode + "&order=size&by=DESC"));
         this.previouslyFoundEpisodes.add(episode);
+      }
+    }
+    if (!found)
+    {
+      Matcher noEpisodesMatcher = Pattern.compile("No episodes from your watchlist!").matcher(response);
+      if (!noEpisodesMatcher.find())
+      {
+        MaloWLogger.warning("Failed to parse HTML. Check regex matchers and page source. Source searched:\n" + response);
       }
     }
   }

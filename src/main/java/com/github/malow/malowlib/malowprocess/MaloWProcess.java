@@ -132,7 +132,7 @@ public abstract class MaloWProcess
 
   public void close()
   {
-    if (this.state == ProcessState.RUNNING)
+    if (this.stayAlive)
     {
       this.stayAlive = false;
       synchronized (this.threads)
@@ -140,10 +140,6 @@ public abstract class MaloWProcess
         this.threads.forEach(t -> t.interrupt());
       }
       this.closeSpecific();
-    }
-    else
-    {
-      MaloWLogger.warning("Tried to close a MaloWProcess that was not running: " + this.processName);
     }
   }
 
