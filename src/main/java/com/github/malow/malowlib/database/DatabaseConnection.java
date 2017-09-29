@@ -9,6 +9,7 @@ import java.util.Map;
 import org.sqlite.SQLiteConfig;
 
 import com.github.malow.malowlib.MaloWLogger;
+import com.mysql.jdbc.AbandonedConnectionCleanupThread;
 
 public class DatabaseConnection
 {
@@ -21,7 +22,6 @@ public class DatabaseConnection
 
   private static class DatabaseConnectionKey
   {
-
     private DatabaseType databaseType;
     private String databaseName;
 
@@ -77,6 +77,22 @@ public class DatabaseConnection
   }
 
   private static Map<DatabaseConnectionKey, Connection> databaseConnections = new HashMap<>();
+
+  public static void closeAll()
+  {
+    try
+    {
+      for (Map.Entry<DatabaseConnectionKey, Connection> entry : databaseConnections.entrySet())
+      {
+        entry.getValue().close();
+      }
+      AbandonedConnectionCleanupThread.shutdown();
+    }
+    catch (Exception e)
+    {
+      MaloWLogger.error("Failed to close database connection.", e);
+    }
+  }
 
   public static DatabaseConnection get(DatabaseType databaseType, String databaseName)
   {

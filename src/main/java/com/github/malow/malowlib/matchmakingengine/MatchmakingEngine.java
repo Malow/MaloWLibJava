@@ -95,7 +95,10 @@ public class MatchmakingEngine extends MaloWProcess
           }
           catch (Exception e)
           {
-            MaloWLogger.error("Failed to sleep", e);
+            if (this.stayAlive)
+            {
+              MaloWLogger.error("Failed to sleep", e);
+            }
           }
         }
       }
