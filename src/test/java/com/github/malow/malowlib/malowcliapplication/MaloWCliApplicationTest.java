@@ -1,33 +1,81 @@
 package com.github.malow.malowlib.malowcliapplication;
 
-import com.github.malow.malowlib.MaloWLogger;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class MaloWCliApplicationTest extends MaloWCliApplication
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+
+import org.junit.Test;
+
+public class MaloWCliApplicationTest
 {
-  public static void main(String[] args)
+
+  private static class MaloWCliApplicationForTest extends MaloWCliApplication
   {
-    MaloWLogger.setLoggingThresholdToInfo();
-    MaloWCliApplicationTest test = new MaloWCliApplicationTest();
-    test.run();
+    public boolean isApa = false;
+    public boolean exitedSpecific = false;
+
+    public MaloWCliApplicationForTest(InputStream in)
+    {
+      super(in);
+    }
+
+    @Command(description = "Sets isApa to true")
+    public void apa()
+    {
+      this.isApa = true;
+    }
+
+    @Command(description = "Closes the application and sets exitedSpecific to true")
+    @Override
+    public void exit()
+    {
+      this.exitedSpecific = true;
+      super.exit();
+    }
   }
 
-  @Command
-  public void apa()
+  @Test
+  public void test() throws Exception
   {
-    System.out.println("appa");
+    try (PipedInputStream in = new PipedInputStream(); PipedOutputStream out = new PipedOutputStream(in);)
+    {
+      MaloWCliApplicationForTest cliApp = new MaloWCliApplicationForTest(in);
+
+      Thread inputThread = new Thread()
+      {
+        @Override
+        public void run()
+        {
+          try
+          {
+            Thread.sleep(10);
+            out.write("apa\n".getBytes());
+            out.flush();
+            Thread.sleep(10);
+            out.write("exit\n".getBytes());
+            out.flush();
+            Thread.sleep(10);
+          }
+          catch (Exception e)
+          {
+            throw new RuntimeException(e);
+          }
+        }
+      };
+      inputThread.start();
+      cliApp.run();
+
+      assertThat(cliApp.isApa).isTrue();
+      assertThat(cliApp.exitedSpecific).isTrue();
+    }
   }
 
-  @Command
-  public void monkey()
+  @Test
+  public void test2()
   {
-    System.out.println("monkkeeh");
-  }
-
-  @Command
-  @Override
-  public void exit()
-  {
-    System.out.println("exit override");
-    super.exit();
+    MaloWCliApplicationForTest cliApp = new MaloWCliApplicationForTest(System.in);
+    cliApp.run();
   }
 }

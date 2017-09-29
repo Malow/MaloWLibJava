@@ -1,10 +1,11 @@
 package com.github.malow.malowlib.malowcliapplication;
 
+import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
@@ -12,14 +13,34 @@ import com.github.malow.malowlib.MaloWLogger;
 
 public abstract class MaloWCliApplication
 {
-  Scanner in = new Scanner(System.in);
-  private Map<String, Method> commands = new HashMap<>();
+  private static class MappedCommand
+  {
+    public MappedCommand(String name, Method method, String description)
+    {
+      this.name = name;
+      this.method = method;
+      this.description = description;
+    }
+
+    public String name;
+    public Method method;
+    public String description;
+  }
+
+  private Scanner in;
+  private List<MappedCommand> commands = new ArrayList<>();
   private boolean run = true;
 
   public MaloWCliApplication()
   {
+    this(System.in);
+  }
+
+  public MaloWCliApplication(InputStream input)
+  {
     MaloWLogger.init();
     this.registerCommands();
+    this.in = new Scanner(input);
   }
 
   private void registerCommands()
@@ -28,7 +49,7 @@ public abstract class MaloWCliApplication
         .collect(Collectors.toList());
     for (Method method : commandMethods)
     {
-      this.commands.put(method.getName().toLowerCase(), method);
+      this.commands.add(new MappedCommand(method.getName().toLowerCase(), method, method.getDeclaredAnnotation(Command.class).description()));
     }
   }
 
@@ -43,13 +64,13 @@ public abstract class MaloWCliApplication
     while (this.run)
     {
       String input = this.in.next().toLowerCase();
-      Method method = this.commands.get(input);
-      if (method != null)
+      Optional<MappedCommand> mappedComamnd = this.getMappedCommandByName(input);
+      if (mappedComamnd.isPresent())
       {
         try
         {
           long before = System.currentTimeMillis();
-          method.invoke(this);
+          mappedComamnd.get().method.invoke(this);
           MaloWLogger.info("Finished command " + input + " in " + (System.currentTimeMillis() - before) + "ms.");
         }
         catch (Exception e)
@@ -65,6 +86,11 @@ public abstract class MaloWCliApplication
     this.onStop();
   }
 
+  private Optional<MappedCommand> getMappedCommandByName(String name)
+  {
+    return this.commands.stream().filter(c -> c.name.equals(name)).findAny();
+  }
+
   public void onStop()
   {
 
@@ -76,7 +102,14 @@ public abstract class MaloWCliApplication
     this.in.close();
   }
 
-  @Command
+  @Command(description = "Lists all available commands")
+  public void help()
+  {
+    System.out.println("Available commands for " + this.getClass().getSimpleName() + ":");
+    this.commands.stream().forEach(c -> System.out.println("  " + c.name + " - " + c.description));
+  }
+
+  @Command(description = "Closes the application")
   public void exit()
   {
     MaloWLogger.info("Application closed by exit CLI-command");
