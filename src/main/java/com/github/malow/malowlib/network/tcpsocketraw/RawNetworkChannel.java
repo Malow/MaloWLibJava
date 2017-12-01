@@ -1,4 +1,4 @@
-package com.github.malow.malowlib.network.raw;
+package com.github.malow.malowlib.network.tcpsocketraw;
 
 import java.io.IOException;
 import java.net.Socket;

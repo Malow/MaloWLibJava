@@ -1,4 +1,4 @@
-package com.github.malow.malowlib.network.message;
+package com.github.malow.malowlib.network.tpcsocketmessage;
 
 import java.io.BufferedReader;
 import java.io.IOException;

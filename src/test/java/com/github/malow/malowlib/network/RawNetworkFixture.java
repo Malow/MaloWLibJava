@@ -11,9 +11,9 @@ import org.junit.Before;
 
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
-import com.github.malow.malowlib.network.raw.RawNetworkChannel;
-import com.github.malow.malowlib.network.raw.RawNetworkChannelAcceptor;
-import com.github.malow.malowlib.network.raw.RawNetworkPacket;
+import com.github.malow.malowlib.network.tcpsocketraw.RawNetworkChannel;
+import com.github.malow.malowlib.network.tcpsocketraw.RawNetworkChannelAcceptor;
+import com.github.malow.malowlib.network.tcpsocketraw.RawNetworkPacket;
 
 public class RawNetworkFixture
 {

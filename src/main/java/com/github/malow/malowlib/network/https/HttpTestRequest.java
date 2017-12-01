@@ -1,6 +1,6 @@
 package com.github.malow.malowlib.network.https;
 
-public class HttpsPostTestRequest implements HttpsPostRequest
+public class HttpTestRequest implements HttpRequest
 {
   @Override
   public boolean isValid()

@@ -33,7 +33,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
-public class LetsEncrypt
+public class LetsEncryptDownloader
 {
   private static final String FOLDER = "LetsEncryptCerts/";
   private static final File USER_KEY_FILE = new File(FOLDER + "user.key");
@@ -53,7 +53,7 @@ public class LetsEncrypt
     String domain = "malow.duckdns.org";
     int port = 7777;
 
-    LetsEncrypt ct = new LetsEncrypt(domain, port);
+    LetsEncryptDownloader ct = new LetsEncryptDownloader(domain, port);
     try
     {
       ct.downloadCertificates();
@@ -71,7 +71,7 @@ public class LetsEncrypt
    * @param port
    *          The port which port 80 is forwarded to.
    */
-  public LetsEncrypt(String domain, int port)
+  public LetsEncryptDownloader(String domain, int port)
   {
     this.domain = domain;
     this.port = port;

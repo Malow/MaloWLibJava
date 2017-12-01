@@ -1,4 +1,4 @@
-package com.github.malow.malowlib.network.message;
+package com.github.malow.malowlib.network.tpcsocketmessage;
 
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
 

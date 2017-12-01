@@ -1,6 +1,6 @@
 package com.github.malow.malowlib.network.https;
 
-public class HttpsPostServerConfig
+public class SimpleHttpsServerConfig
 {
   public static interface SslConfig
   {
@@ -32,7 +32,7 @@ public class HttpsPostServerConfig
   public SslConfig sslConfig;
   public boolean useMultipleThreads = false;
 
-  public HttpsPostServerConfig(int port, SslConfig sslConfig, String sslPassword)
+  public SimpleHttpsServerConfig(int port, SslConfig sslConfig, String sslPassword)
   {
     this.port = port;
     this.sslConfig = sslConfig;

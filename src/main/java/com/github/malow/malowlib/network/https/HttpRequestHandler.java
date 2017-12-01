@@ -13,7 +13,7 @@ import com.github.malow.malowlib.MaloWLogger;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
-public abstract class HttpsJsonPostHandler<RequestClass extends HttpsPostRequest> implements HttpHandler
+public abstract class HttpRequestHandler<RequestClass extends HttpRequest> implements HttpHandler
 {
   public static class BadRequestException extends Exception
   {
@@ -23,7 +23,7 @@ public abstract class HttpsJsonPostHandler<RequestClass extends HttpsPostRequest
   private Class<RequestClass> requestClass;
 
   @SuppressWarnings("unchecked")
-  public HttpsJsonPostHandler()
+  public HttpRequestHandler()
   {
     try
     {
@@ -44,7 +44,7 @@ public abstract class HttpsJsonPostHandler<RequestClass extends HttpsPostRequest
     try
     {
       RequestClass request = this.createValidJsonRequest(stringRequest);
-      HttpsPostResponse response = this.handleRequestAndGetResponse(request);
+      HttpResponse response = this.handleRequestAndGetResponse(request);
       String stringResponse = GsonSingleton.toJson(response);
       if (stringResponse != null)
       {
@@ -62,7 +62,7 @@ public abstract class HttpsJsonPostHandler<RequestClass extends HttpsPostRequest
     }
   }
 
-  public abstract HttpsPostResponse handleRequestAndGetResponse(RequestClass request) throws BadRequestException;
+  public abstract HttpResponse handleRequestAndGetResponse(RequestClass request) throws BadRequestException;
 
   private static void sendResponse(HttpExchange t, int code, String response)
   {
@@ -91,21 +91,19 @@ public abstract class HttpsJsonPostHandler<RequestClass extends HttpsPostRequest
 
   private static String getStringRequest(HttpExchange t)
   {
-    String msg = "";
+    StringBuilder buffer = new StringBuilder();
     try (BufferedReader br = new BufferedReader(new InputStreamReader(t.getRequestBody(), "utf-8")))
     {
       int b;
-      StringBuilder buf = new StringBuilder();
       while ((b = br.read()) != -1)
       {
-        buf.append((char) b);
+        buffer.append((char) b);
       }
-      msg = buf.toString();
-      return msg;
+      return buffer.toString();
     }
     catch (Exception e)
     {
-      MaloWLogger.error("Failed when trying to parse request: " + msg, e);
+      MaloWLogger.error("Failed when trying to parse request: " + buffer.toString(), e);
       return null;
     }
   }

@@ -20,19 +20,19 @@ import javax.net.ssl.TrustManagerFactory;
 import org.shredzone.acme4j.util.KeyPairUtils;
 
 import com.github.malow.malowlib.MaloWLogger;
-import com.github.malow.malowlib.network.https.HttpsPostServerConfig.JksFileConfig;
-import com.github.malow.malowlib.network.https.HttpsPostServerConfig.LetsEncryptConfig;
+import com.github.malow.malowlib.network.https.SimpleHttpsServerConfig.JksFileConfig;
+import com.github.malow.malowlib.network.https.SimpleHttpsServerConfig.LetsEncryptConfig;
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
 
-public class HttpsPostServer
+public class SimpleHttpsServer
 {
   private int port;
   private HttpsServer server = null;
   private ExecutorService executorService = null;
 
-  public HttpsPostServer(HttpsPostServerConfig config)
+  public SimpleHttpsServer(SimpleHttpsServerConfig config)
   {
     if (config.sslConfig instanceof JksFileConfig)
     {
@@ -54,7 +54,7 @@ public class HttpsPostServer
     return this.port;
   }
 
-  public void createContext(String path, HttpsJsonPostHandler<?> handler)
+  public void createContext(String path, HttpRequestHandler<?> handler)
   {
     this.server.createContext(path, handler);
   }
