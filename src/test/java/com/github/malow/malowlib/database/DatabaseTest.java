@@ -47,6 +47,20 @@ public class DatabaseTest extends DatabaseTestFixture
     Person p3 = personAccessor.read(p2.getId());
     assertThat(p3.fk_car).isEqualTo(car.getId());
     assertThat(p3.fk_bike).isEqualTo(bike.getId());
+
+    assertThatThrownBy(() ->
+    {
+      vehicleAccessor.delete(car);
+    }).isInstanceOf(ForeignKeyException.class);
+    assertThatThrownBy(() ->
+    {
+      vehicleAccessor.delete(bike);
+    }).isInstanceOf(ForeignKeyException.class);
+
+    personAccessor.delete(p1);
+    personAccessor.delete(p2);
+    vehicleAccessor.delete(car);
+    vehicleAccessor.delete(bike);
   }
 
   @Test
@@ -80,7 +94,7 @@ public class DatabaseTest extends DatabaseTestFixture
     VehicleAccessor accessor = new VehicleAccessor(DatabaseConnection.get(DatabaseType.SQLITE_MEMORY, DATABASE_NAME));
     accessor.createTable();
     Vehicle vehicle = accessor.create(new Vehicle("asd"));
-    accessor.delete(vehicle.getId());
+    accessor.delete(vehicle);
     assertThat(accessor.getNumberOfEntriesInDatabase()).isEqualTo(0);
     accessor.create(new Vehicle("asd"));
   }
@@ -178,11 +192,11 @@ public class DatabaseTest extends DatabaseTestFixture
   DROP DATABASE Test;
   CREATE DATABASE Test;
   USE Test;
-
+  
   DROP USER TestUsr;
   FLUSH PRIVILEGES;
   CREATE USER TestUsr IDENTIFIED BY 'test';
-
+  
   GRANT USAGE ON *.* TO 'TestUsr'@'%' IDENTIFIED BY 'test';
   GRANT ALL PRIVILEGES ON Test.* TO 'TestUsr'@'%'WITH GRANT OPTION;
   */

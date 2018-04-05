@@ -71,11 +71,4 @@ public class MaloWCliApplicationTest
       assertThat(cliApp.exitedSpecific).isTrue();
     }
   }
-
-  @Test
-  public void test2()
-  {
-    MaloWCliApplicationForTest cliApp = new MaloWCliApplicationForTest(System.in);
-    cliApp.run();
-  }
 }

@@ -220,7 +220,12 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     }
   }
 
-  public void delete(Integer id) throws ZeroRowsReturnedException, MultipleRowsReturnedException, UnexpectedException
+  public void delete(Entity entity) throws ZeroRowsReturnedException, MultipleRowsReturnedException, UnexpectedException, ForeignKeyException
+  {
+    this.delete(entity.getId());
+  }
+
+  public void delete(Integer id) throws ZeroRowsReturnedException, MultipleRowsReturnedException, UnexpectedException, ForeignKeyException
   {
     PreparedStatement statement = null;
     try
@@ -236,10 +241,13 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     }
     catch (Exception e)
     {
+      if (e.getMessage().contains("A foreign key constraint failed (FOREIGN KEY constraint failed)"))
+      {
+        throw new ForeignKeyException();
+      }
       this.closeStatement(statement);
       this.logAndReThrowUnexpectedException(
           "Unexpected error when trying to delete a " + this.entityClass.getSimpleName() + " with id " + id + " in accessor", e);
-
     }
   }
 
