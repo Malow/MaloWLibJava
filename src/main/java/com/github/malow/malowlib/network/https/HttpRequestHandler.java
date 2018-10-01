@@ -4,12 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 
 import com.github.malow.malowlib.GsonSingleton;
 import com.github.malow.malowlib.MaloWLogger;
+import com.github.malow.malowlib.MaloWUtils;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -22,16 +21,13 @@ public abstract class HttpRequestHandler<RequestClass extends HttpRequest> imple
 
   private Class<RequestClass> requestClass;
 
-  @SuppressWarnings("unchecked")
   public HttpRequestHandler()
   {
     try
     {
-      Type genericSuperClass = this.getClass().getGenericSuperclass();
-      Type type = ((ParameterizedType) genericSuperClass).getActualTypeArguments()[0];
-      this.requestClass = (Class<RequestClass>) Class.forName(type.getTypeName());
+      this.requestClass = MaloWUtils.getGenericClassFor(this);
     }
-    catch (Exception e)
+    catch (ClassNotFoundException e)
     {
       MaloWLogger.error("Failed to get RequestClass for HttpsJsonPostHandler", e);
     }

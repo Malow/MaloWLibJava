@@ -33,6 +33,7 @@ public abstract class DatabaseTableEntity
   }
 
   private Integer id;
+  private Integer version = 1;
 
   public Integer getId()
   {
@@ -44,9 +45,24 @@ public abstract class DatabaseTableEntity
     this.id = id;
   }
 
+  Integer getVersion()
+  {
+    return this.version;
+  }
+
+  void setVersion(Integer version)
+  {
+    this.version = version;
+  }
+
+  void incrementVersion()
+  {
+    this.version++;
+  }
+
   @Override
   public String toString()
   {
-    return this.getClass().getSimpleName() + ":" + this.getId();
+    return this.getClass().getSimpleName() + ":" + this.getId() + " v" + this.getVersion();
   }
 }

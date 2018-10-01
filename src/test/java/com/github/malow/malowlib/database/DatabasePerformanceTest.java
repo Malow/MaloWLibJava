@@ -19,6 +19,7 @@ public class DatabasePerformanceTest extends DatabaseTestFixture
   private static int populateStatement(PreparedStatement statement, Vehicle entity) throws Exception
   {
     int q = 1;
+    statement.setInt(q++, entity.getVersion());
     statement.setString(q++, entity.licensePlate);
     if (entity.purchaseDate != null)
     {
@@ -62,7 +63,7 @@ public class DatabasePerformanceTest extends DatabaseTestFixture
     }
   }
 
-  private static final int COUNT = 200000;
+  private static final int COUNT = 100000;
 
   @Test
   public void testWithoutFramework() throws Exception
@@ -76,13 +77,14 @@ public class DatabasePerformanceTest extends DatabaseTestFixture
     middle = System.nanoTime();
     Statement statement = connection.createStatement();
     statement.executeUpdate("DROP TABLE IF EXISTS vehicle");
-    statement.executeUpdate(
-        "CREATE TABLE vehicle (id INTEGER PRIMARY KEY AUTOINCREMENT, licensePlate STRING NOT NULL UNIQUE, purchaseDate DATETIME, value DOUBLE)");
+    statement.executeUpdate("CREATE TABLE vehicle (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        + "version INTEGER NOT NULL, licensePlate STRING NOT NULL UNIQUE, purchaseDate DATETIME, value DOUBLE)");
     statement.close();
     System.out.println("Create table: " + (System.nanoTime() - middle) / 1000000.0 + "ms");
     middle = System.nanoTime();
     long before = middle;
-    PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO vehicle(licensePlate, purchaseDate, value) VALUES (?, ?, ?)",
+    PreparedStatement insertStatement = connection.prepareStatement(
+        "INSERT INTO vehicle(version, licensePlate, purchaseDate, value) VALUES (?, ?, ?, ?)",
         Statement.RETURN_GENERATED_KEYS);
     for (int i = 0; i < COUNT; i++)
     {

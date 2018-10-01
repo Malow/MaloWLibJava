@@ -11,10 +11,35 @@ import org.junit.Test;
 import com.github.malow.malowlib.database.DatabaseConnection.DatabaseType;
 import com.github.malow.malowlib.database.DatabaseExceptions.ForeignKeyException;
 import com.github.malow.malowlib.database.DatabaseExceptions.MissingMandatoryFieldException;
+import com.github.malow.malowlib.database.DatabaseExceptions.SimultaneousModificationException;
 import com.github.malow.malowlib.database.DatabaseExceptions.UniqueException;
 
+/*
+ * TODO: Make each test run with each type of DB (SQLITE_MEMORY, SQLITE_FILE and MYSQL
+ */
 public class DatabaseTest extends DatabaseTestFixture
 {
+  @Test
+  public void testVersioningSimultaneousModification() throws Exception
+  {
+    VehicleAccessor vehicleAccessor = new VehicleAccessor(DatabaseConnection.get(DatabaseType.SQLITE_MEMORY, DATABASE_NAME));
+    vehicleAccessor.createTable();
+    Vehicle car = vehicleAccessor.create(new Vehicle("asd"));
+    assertThat(car.getVersion()).isEqualTo(1);
+    Vehicle car2 = vehicleAccessor.read(car.getId());
+    assertThat(car2.getVersion()).isEqualTo(1);
+    car.value = 5.0;
+    vehicleAccessor.update(car);
+    assertThat(car.getVersion()).isEqualTo(2);
+    assertThat(vehicleAccessor.read(car.getId()).getVersion()).isEqualTo(2);
+    assertThat(car2.getVersion()).isEqualTo(1);
+    car2.value = 15.0;
+    assertThatThrownBy(() ->
+    {
+      vehicleAccessor.update(car2);
+    }).isInstanceOf(SimultaneousModificationException.class);
+  }
+
   @Test
   public void testForeignKeyAnnotation() throws Exception
   {

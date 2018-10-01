@@ -249,4 +249,14 @@ public abstract class MaloWProcess
   {
     return nextID;
   }
+
+  public String getProcessName()
+  {
+    return this.processName;
+  }
+
+  public String getThreadName()
+  {
+    return Thread.currentThread().getName();
+  }
 }

@@ -62,6 +62,16 @@ public class DatabaseExceptions
     private static final long serialVersionUID = 1L;
   }
 
+  public static class SimultaneousModificationException extends Exception
+  {
+    private static final long serialVersionUID = 1L;
+  }
+
+  public static class TimeoutException extends Exception
+  {
+    private static final long serialVersionUID = 1L;
+  }
+
   public static class MultipleRowsReturnedException extends Exception
   {
     private static final long serialVersionUID = 1L;

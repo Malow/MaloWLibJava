@@ -13,7 +13,10 @@ import com.github.malow.malowlib.malowprocess.MaloWProcess;
 import com.github.malow.malowlib.namedmutex.NamedMutex;
 import com.github.malow.malowlib.namedmutex.NamedMutexHandler;
 
-public class DatabaseConcurrencyTest extends DatabaseTestFixture
+/*
+ * TODO: Might be obsolete now that DatabaseConcurrencyTest exists
+ */
+public class DatabaseMutexConcurrencyTest extends DatabaseTestFixture
 {
   protected static class Data extends DatabaseTableEntity
   {

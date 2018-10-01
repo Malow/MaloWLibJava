@@ -1,8 +1,6 @@
 package com.github.malow.malowlib.database;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,9 +13,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.github.malow.malowlib.MaloWLogger;
+import com.github.malow.malowlib.MaloWUtils;
 import com.github.malow.malowlib.database.DatabaseExceptions.ForeignKeyException;
 import com.github.malow.malowlib.database.DatabaseExceptions.MissingMandatoryFieldException;
 import com.github.malow.malowlib.database.DatabaseExceptions.MultipleRowsReturnedException;
+import com.github.malow.malowlib.database.DatabaseExceptions.SimultaneousModificationException;
 import com.github.malow.malowlib.database.DatabaseExceptions.UnexpectedException;
 import com.github.malow.malowlib.database.DatabaseExceptions.UniqueException;
 import com.github.malow.malowlib.database.DatabaseExceptions.ZeroRowsReturnedException;
@@ -26,7 +26,7 @@ import com.github.malow.malowlib.database.DatabaseTableEntity.NotPersisted;
 import com.github.malow.malowlib.database.DatabaseTableEntity.Optional;
 import com.github.malow.malowlib.database.DatabaseTableEntity.Unique;
 
-public abstract class Accessor<Entity extends DatabaseTableEntity>
+public class Accessor<Entity extends DatabaseTableEntity>
 {
   protected Connection connection;
   protected Class<Entity> entityClass;
@@ -41,38 +41,51 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
   private PreparedStatementPool updateStatements;
   private PreparedStatementPool deleteStatements;
 
-  @SuppressWarnings("unchecked")
-  public Accessor(DatabaseConnection databaseConnection)
+  public Accessor(Class<Entity> clazz, DatabaseConnection databaseConnection)
   {
+    this.connection = databaseConnection.connection;
+    this.entityClass = clazz;
+    this.init();
+  }
+
+  protected Accessor(DatabaseConnection databaseConnection)
+  {
+    this.connection = databaseConnection.connection;
     try
     {
-      Type genericSuperClass = this.getClass().getGenericSuperclass();
-      Type type = ((ParameterizedType) genericSuperClass).getActualTypeArguments()[0];
-      this.entityClass = (Class<Entity>) Class.forName(type.getTypeName());
+      this.entityClass = MaloWUtils.getGenericClassFor(this);
     }
-    catch (Exception e)
+    catch (ClassNotFoundException e)
     {
       MaloWLogger.error("Failed to get entityClass for accessor", e);
     }
+    this.init();
+  }
 
-    this.connection = databaseConnection.connection;
+  private void init()
+  {
     this.fields = Arrays.asList(this.entityClass.getFields());
     this.fields = this.fields.stream().filter(f -> !f.isAnnotationPresent(NotPersisted.class)).collect(Collectors.toList());
     this.tableName = this.entityClass.getSimpleName().toLowerCase();
-    this.insertString = "INSERT INTO " + this.tableName + "(";
-    this.insertString += this.fields.stream().map(f -> f.getName()).collect(Collectors.joining(", "));
-    this.insertString += ") VALUES (";
-    this.insertString += this.fields.stream().map(f -> "?").collect(Collectors.joining(", "));
-    this.insertString += ")";
+    this.insertString = "INSERT INTO " + this.tableName + "(version, "
+        + this.fields.stream().map(f -> f.getName()).collect(Collectors.joining(", "))
+        + ") VALUES (?, "
+        + this.fields.stream().map(f -> "?").collect(Collectors.joining(", "))
+        + ")";
 
-    this.updateString = "UPDATE " + this.tableName + " SET ";
-    this.updateString += this.fields.stream().map(f -> f.getName() + " = ?").collect(Collectors.joining(", "));
-    this.updateString += " WHERE id = ?";
+    this.updateString = "UPDATE " + this.tableName + " SET version = ?, "
+        + this.fields.stream().map(f -> f.getName() + " = ?").collect(Collectors.joining(", "))
+        + " WHERE id = ? AND version = ?";
 
     this.createStatements = this.createPreparedStatementPool(this.insertString, Statement.RETURN_GENERATED_KEYS);
     this.readStatements = this.createPreparedStatementPool("SELECT * FROM " + this.tableName + " WHERE id = ?");
     this.updateStatements = this.createPreparedStatementPool(this.updateString);
     this.deleteStatements = this.createPreparedStatementPool("DELETE FROM " + this.tableName + " WHERE id = ?");
+  }
+
+  public Class<Entity> getEntityClass()
+  {
+    return this.entityClass;
   }
 
   public Entity create(Entity entity) throws UniqueException, ForeignKeyException, MissingMandatoryFieldException, UnexpectedException
@@ -81,7 +94,8 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     try
     {
       statement = this.createStatements.get();
-      this.populateStatement(statement, entity);
+      statement.setObject(1, entity.getVersion());
+      this.populateStatement(statement, entity, 2);
       this.createWithPopulatedStatement(statement, entity);
       this.createStatements.add(statement);
       return entity;
@@ -167,6 +181,7 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     }
     Entity entity = this.entityClass.newInstance();
     entity.setId(resultSet.getInt("id"));
+    entity.setVersion(resultSet.getInt("version"));
     this.populateEntity(entity, resultSet);
     if (resultSet.next())
     {
@@ -197,18 +212,25 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     return result;
   }
 
-  public void update(Entity entity) throws ZeroRowsReturnedException, MultipleRowsReturnedException, UnexpectedException
+  public void update(Entity entity) throws SimultaneousModificationException, MultipleRowsReturnedException, UnexpectedException
   {
     PreparedStatement statement = null;
     try
     {
       statement = this.updateStatements.get();
-      int i = this.populateStatement(statement, entity);
+      statement.setInt(1, entity.getVersion() + 1);
+      int i = this.populateStatement(statement, entity, 2);
       statement.setInt(i++, entity.getId());
+      statement.setInt(i++, entity.getVersion());
       this.updateWithPopulatedStatement(statement);
+      entity.incrementVersion();
       this.updateStatements.add(statement);
     }
-    catch (ZeroRowsReturnedException | MultipleRowsReturnedException e)
+    catch (ZeroRowsReturnedException e)
+    {
+      throw new SimultaneousModificationException();
+    }
+    catch (MultipleRowsReturnedException e)
     {
       throw e;
     }
@@ -289,7 +311,9 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
   {
     this.dropTable();
     Statement statement = this.connection.createStatement();
-    String sql = "CREATE TABLE " + this.tableName + " (id INTEGER PRIMARY KEY AUTOINCREMENT, ";
+    String sql = "CREATE TABLE " + this.tableName
+        + " (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        + "version INTEGER NOT NULL, ";
     List<String> foreignKeys = new ArrayList<>();
     sql += this.fields.stream().map(field ->
     {
@@ -322,14 +346,13 @@ public abstract class Accessor<Entity extends DatabaseTableEntity>
     MaloWLogger.info("Accessor dropped and created table for " + this.entityClass.getSimpleName() + ".");
   }
 
-  protected int populateStatement(PreparedStatement statement, Entity entity) throws Exception
+  protected int populateStatement(PreparedStatement statement, Entity entity, int startIndex) throws Exception
   {
-    int i = 1;
     for (Field field : this.fields)
     {
-      statement.setObject(i++, field.get(entity));
+      statement.setObject(startIndex++, field.get(entity));
     }
-    return i;
+    return startIndex;
   }
 
   protected void populateEntity(Entity entity, ResultSet resultSet) throws Exception

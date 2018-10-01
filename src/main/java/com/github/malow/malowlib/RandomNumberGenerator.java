@@ -1,18 +1,25 @@
 package com.github.malow.malowlib;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 public class RandomNumberGenerator
 {
   public static float getRandomFloat(float min, float max)
   {
-    double rnd = Math.random();
+    float rnd = ThreadLocalRandom.current().nextFloat();
     float range = max - min;
-    return (float) (rnd * range + min);
+    return rnd * range + min;
+  }
+
+  public static double getRandomDouble(double min, double max)
+  {
+    return ThreadLocalRandom.current().nextDouble(min, max);
   }
 
   public static int getRandomInt(int min, int max)
   {
     max++;
-    double rnd = Math.random();
+    double rnd = ThreadLocalRandom.current().nextDouble();
     int range = max - min;
     return (int) (rnd * range + min);
   }
