@@ -2,8 +2,11 @@ package com.github.malow.malowlib.database;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+
+import com.github.malow.malowlib.MaloWLogger;
 
 public class PreparedStatementPool
 {
@@ -24,7 +27,7 @@ public class PreparedStatementPool
     this(connection, statementString, null);
   }
 
-  public PreparedStatement get() throws Exception
+  private PreparedStatement get() throws Exception
   {
     PreparedStatement statement = this.statements.pollFirst();
     if (statement != null)
@@ -41,8 +44,65 @@ public class PreparedStatementPool
     }
   }
 
-  public void add(PreparedStatement statement)
+  private void add(PreparedStatement statement)
   {
     this.statements.add(statement);
+  }
+
+  @FunctionalInterface
+  public interface StatementFunctionWithReturn<T>
+  {
+    T apply(PreparedStatement statement) throws Exception;
+  }
+
+  @FunctionalInterface
+  public interface StatementFunction
+  {
+    void apply(PreparedStatement statement) throws Exception;
+  }
+
+  private void closeStatement(PreparedStatement statement)
+  {
+    try
+    {
+      statement.close();
+    }
+    catch (SQLException e)
+    {
+      MaloWLogger.error("Failed to close SQL statement in " + this.getClass().getSimpleName(), e);
+    }
+  }
+
+  public <T> T useStatement(StatementFunctionWithReturn<T> f) throws Exception
+  {
+    PreparedStatement statement = this.get();
+    try
+    {
+      T obj = f.apply(statement);
+      this.add(statement);
+      return obj;
+    }
+    catch (SQLException e)
+    {
+      MaloWLogger.error(this.getClass().getSimpleName() + " received SQLException, closing statement.", e);
+      this.closeStatement(statement);
+      throw e;
+    }
+  }
+
+  public void useStatement(StatementFunction f) throws Exception
+  {
+    PreparedStatement statement = this.get();
+    try
+    {
+      f.apply(statement);
+      this.add(statement);
+    }
+    catch (SQLException e)
+    {
+      MaloWLogger.error(this.getClass().getSimpleName() + " received SQLException, closing statement.", e);
+      this.closeStatement(statement);
+      throw e;
+    }
   }
 }

@@ -217,11 +217,11 @@ public class DatabaseTest extends DatabaseTestFixture
   DROP DATABASE Test;
   CREATE DATABASE Test;
   USE Test;
-  
+
   DROP USER TestUsr;
   FLUSH PRIVILEGES;
   CREATE USER TestUsr IDENTIFIED BY 'test';
-  
+
   GRANT USAGE ON *.* TO 'TestUsr'@'%' IDENTIFIED BY 'test';
   GRANT ALL PRIVILEGES ON Test.* TO 'TestUsr'@'%'WITH GRANT OPTION;
   */

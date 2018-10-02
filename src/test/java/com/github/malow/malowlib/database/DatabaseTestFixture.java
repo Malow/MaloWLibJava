@@ -28,6 +28,9 @@ public class DatabaseTestFixture
     }
   }
 
+  /*
+    TODO: Remove these, and use the direct new Accessor() style, but implement new test that tests a specific implementation of an Accessor like this but with also custom statements (like AccServ and GladAr.
+   */
   protected static class VehicleAccessor extends Accessor<Vehicle>
   {
     public VehicleAccessor(DatabaseConnection databaseConnection)

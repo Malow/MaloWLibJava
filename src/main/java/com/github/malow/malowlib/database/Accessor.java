@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,6 +65,14 @@ public class Accessor<Entity extends DatabaseTableEntity>
 
   private void init()
   {
+    try
+    {
+      Database.AccessorsSingleton.register(this);
+    }
+    catch (ClassNotFoundException e)
+    {
+      MaloWLogger.error("Failed to register Accessor to AccessorsSingleton for class " + this.getEntityClass().getSimpleName(), e);
+    }
     this.fields = Arrays.asList(this.entityClass.getFields());
     this.fields = this.fields.stream().filter(f -> !f.isAnnotationPresent(NotPersisted.class)).collect(Collectors.toList());
     this.tableName = this.entityClass.getSimpleName().toLowerCase();
@@ -90,33 +99,31 @@ public class Accessor<Entity extends DatabaseTableEntity>
 
   public Entity create(Entity entity) throws UniqueException, ForeignKeyException, MissingMandatoryFieldException, UnexpectedException
   {
-    PreparedStatement statement = null;
     try
     {
-      statement = this.createStatements.get();
-      statement.setObject(1, entity.getVersion());
-      this.populateStatement(statement, entity, 2);
-      this.createWithPopulatedStatement(statement, entity);
-      this.createStatements.add(statement);
-      return entity;
+      return this.createStatements.useStatement(statement ->
+      {
+        statement.setObject(1, entity.getVersion());
+        this.populateStatement(statement, entity, 2);
+        return this.createWithPopulatedStatement(statement, entity);
+      });
     }
-    catch (UniqueException | ForeignKeyException | MissingMandatoryFieldException | UnexpectedException e2)
+    catch (UniqueException | ForeignKeyException | MissingMandatoryFieldException | UnexpectedException e)
     {
-      throw e2;
+      throw e;
     }
     catch (Exception e)
     {
-      this.logAndReThrowUnexpectedException(
+      throw this.logAndCreateUnexpectedException(
           "Unexpected error when trying to create a " + this.entityClass.getSimpleName() + ": " + entity.toString() + " in accessor", e);
     }
-    return null;
   }
 
   protected Entity createWithPopulatedStatement(PreparedStatement statement, Entity entity) throws Exception
   {
     try
     {
-      statement.executeUpdate();
+      this.executeSingleUpdate(statement);
       entity.setId(statement.getGeneratedKeys().getInt(1));
       return entity;
     }
@@ -149,14 +156,13 @@ public class Accessor<Entity extends DatabaseTableEntity>
 
   public Entity read(Integer id) throws ZeroRowsReturnedException, MultipleRowsReturnedException, UnexpectedException
   {
-    PreparedStatement statement = null;
     try
     {
-      statement = this.readStatements.get();
-      statement.setInt(1, id);
-      Entity entity = this.readWithPopulatedStatement(statement);
-      this.readStatements.add(statement);
-      return entity;
+      return this.readStatements.useStatement(statement ->
+      {
+        statement.setInt(1, id);
+        return this.readWithPopulatedStatement(statement);
+      });
     }
     catch (ZeroRowsReturnedException | MultipleRowsReturnedException e)
     {
@@ -164,11 +170,9 @@ public class Accessor<Entity extends DatabaseTableEntity>
     }
     catch (Exception e)
     {
-      this.closeStatement(statement);
-      this.logAndReThrowUnexpectedException(
+      throw this.logAndCreateUnexpectedException(
           "Unexpected error when trying to read a " + this.entityClass.getSimpleName() + " with id " + id + " in accessor", e);
     }
-    return null;
   }
 
   protected Entity readWithPopulatedStatement(PreparedStatement statement) throws Exception
@@ -214,17 +218,17 @@ public class Accessor<Entity extends DatabaseTableEntity>
 
   public void update(Entity entity) throws SimultaneousModificationException, MultipleRowsReturnedException, UnexpectedException
   {
-    PreparedStatement statement = null;
     try
     {
-      statement = this.updateStatements.get();
-      statement.setInt(1, entity.getVersion() + 1);
-      int i = this.populateStatement(statement, entity, 2);
-      statement.setInt(i++, entity.getId());
-      statement.setInt(i++, entity.getVersion());
-      this.updateWithPopulatedStatement(statement);
-      entity.incrementVersion();
-      this.updateStatements.add(statement);
+      this.updateStatements.useStatement(statement ->
+      {
+        statement.setInt(1, entity.getVersion() + 1);
+        int i = this.populateStatement(statement, entity, 2);
+        statement.setInt(i++, entity.getId());
+        statement.setInt(i++, entity.getVersion());
+        this.executeSingleUpdate(statement);
+        entity.incrementVersion();
+      });
     }
     catch (ZeroRowsReturnedException e)
     {
@@ -236,8 +240,7 @@ public class Accessor<Entity extends DatabaseTableEntity>
     }
     catch (Exception e)
     {
-      this.closeStatement(statement);
-      this.logAndReThrowUnexpectedException(
+      throw this.logAndCreateUnexpectedException(
           "Unexpected error when trying to update a " + this.entityClass.getSimpleName() + " with id " + entity.getId() + " in accessor", e);
     }
   }
@@ -249,13 +252,31 @@ public class Accessor<Entity extends DatabaseTableEntity>
 
   public void delete(Integer id) throws ZeroRowsReturnedException, MultipleRowsReturnedException, UnexpectedException, ForeignKeyException
   {
-    PreparedStatement statement = null;
     try
     {
-      statement = this.deleteStatements.get();
-      statement.setInt(1, id);
-      this.updateWithPopulatedStatement(statement);
-      this.deleteStatements.add(statement);
+      this.deleteStatements.useStatement(statement ->
+      {
+        statement.setInt(1, id);
+        this.deleteWithPopulatedStatement(statement);
+      });
+    }
+    catch (ZeroRowsReturnedException | MultipleRowsReturnedException | ForeignKeyException e)
+    {
+      throw e;
+    }
+    catch (Exception e)
+    {
+      throw this.logAndCreateUnexpectedException(
+          "Unexpected error when trying to delete a " + this.entityClass.getSimpleName() + " with id " + id + " in accessor", e);
+    }
+  }
+
+  protected void deleteWithPopulatedStatement(PreparedStatement statement)
+      throws ZeroRowsReturnedException, MultipleRowsReturnedException, ForeignKeyException, SQLException
+  {
+    try
+    {
+      this.executeSingleUpdate(statement);
     }
     catch (ZeroRowsReturnedException | MultipleRowsReturnedException e)
     {
@@ -267,13 +288,11 @@ public class Accessor<Entity extends DatabaseTableEntity>
       {
         throw new ForeignKeyException();
       }
-      this.closeStatement(statement);
-      this.logAndReThrowUnexpectedException(
-          "Unexpected error when trying to delete a " + this.entityClass.getSimpleName() + " with id " + id + " in accessor", e);
+      throw e;
     }
   }
 
-  protected void updateWithPopulatedStatement(PreparedStatement statement) throws Exception
+  protected void executeSingleUpdate(PreparedStatement statement) throws ZeroRowsReturnedException, MultipleRowsReturnedException, SQLException
   {
     int rowCount = statement.executeUpdate();
     if (rowCount == 0)
@@ -305,6 +324,7 @@ public class Accessor<Entity extends DatabaseTableEntity>
     Statement statement = this.connection.createStatement();
     statement.executeUpdate("DROP TABLE IF EXISTS " + this.tableName);
     statement.close();
+    MaloWLogger.info("Accessor dropped table for " + this.entityClass.getSimpleName() + ".");
   }
 
   public void createTable() throws Exception
@@ -343,7 +363,7 @@ public class Accessor<Entity extends DatabaseTableEntity>
     }
     statement.executeUpdate(sql + ")");
     statement.close();
-    MaloWLogger.info("Accessor dropped and created table for " + this.entityClass.getSimpleName() + ".");
+    MaloWLogger.info("Accessor created table for " + this.entityClass.getSimpleName() + ".");
   }
 
   protected int populateStatement(PreparedStatement statement, Entity entity, int startIndex) throws Exception
@@ -381,24 +401,9 @@ public class Accessor<Entity extends DatabaseTableEntity>
     return new PreparedStatementPool(this.connection, statementString);
   }
 
-  protected void logAndReThrowUnexpectedException(String msg, Exception e) throws UnexpectedException
+  protected UnexpectedException logAndCreateUnexpectedException(String msg, Exception e)
   {
     MaloWLogger.error(msg, e);
-    throw new UnexpectedException(msg, e);
-  }
-
-  protected void closeStatement(PreparedStatement statement)
-  {
-    try
-    {
-      if (statement != null)
-      {
-        statement.close();
-      }
-    }
-    catch (Exception e)
-    {
-      MaloWLogger.error("Failed to close statement", e);
-    }
+    return new UnexpectedException(msg, e);
   }
 }

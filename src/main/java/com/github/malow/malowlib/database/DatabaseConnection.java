@@ -11,6 +11,13 @@ import org.sqlite.SQLiteConfig;
 import com.github.malow.malowlib.MaloWLogger;
 import com.mysql.jdbc.AbandonedConnectionCleanupThread;
 
+
+/*
+ * TODO: Rewrite this whole thing. I need to pool database connections. So if I decide to connect to SQLITE "TEST" then something like 10 connections needs to be created in a pool
+ * for that, and when an Accessor uses a connection it grabs it, uses it, and then returns it to the pool. Otherwise I can never use transaction scopes.
+ * Statements are created on a connection, might mean that there needs to be a statement pool for each connection.
+ *
+ */
 public class DatabaseConnection
 {
   public enum DatabaseType
@@ -113,6 +120,9 @@ public class DatabaseConnection
             connection = DriverManager.getConnection("jdbc:sqlite:" + databaseName + ".db", config.toProperties());
             break;
           case MYSQL:
+            /*
+             * TODO: Remove the hard-coding of this stuff
+             */
             connection = DriverManager.getConnection(
                 "jdbc:mysql://192.168.1.110:3306/" + databaseName + "?user=" + "TestUsr" + "&password=" + "test" + "&autoReconnect=true");
             break;
