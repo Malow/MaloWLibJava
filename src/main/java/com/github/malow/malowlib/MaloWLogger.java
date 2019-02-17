@@ -145,6 +145,11 @@ public class MaloWLogger
     log(LogLevel.ERROR, getStringForException(msg, e));
   }
 
+  public static void error(String msg)
+  {
+    error(msg, new Exception());
+  }
+
   private static void log(LogLevel level, String msg)
   {
     if (enabled && threshold.level <= level.level)

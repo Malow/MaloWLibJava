@@ -6,11 +6,6 @@ import java.util.Map;
 
 public abstract class Config
 {
-
-  public Config()
-  {
-  }
-
   public Map<String, String> configHeader = this.createHeader();
 
   public String getName()

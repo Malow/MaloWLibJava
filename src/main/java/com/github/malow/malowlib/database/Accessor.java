@@ -183,7 +183,7 @@ public class Accessor<Entity extends DatabaseTableEntity>
       resultSet.close();
       throw new ZeroRowsReturnedException();
     }
-    Entity entity = this.entityClass.newInstance();
+    Entity entity = this.entityClass.getDeclaredConstructor().newInstance();
     entity.setId(resultSet.getInt("id"));
     entity.setVersion(resultSet.getInt("version"));
     this.populateEntity(entity, resultSet);
@@ -207,7 +207,7 @@ public class Accessor<Entity extends DatabaseTableEntity>
     List<Entity> result = new ArrayList<>();
     do
     {
-      Entity entity = this.entityClass.newInstance();
+      Entity entity = this.entityClass.getDeclaredConstructor().newInstance();
       entity.setId(resultSet.getInt("id"));
       this.populateEntity(entity, resultSet);
       result.add(entity);

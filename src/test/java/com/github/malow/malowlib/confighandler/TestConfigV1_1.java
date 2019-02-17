@@ -2,7 +2,6 @@ package com.github.malow.malowlib.confighandler;
 
 public class TestConfigV1_1 extends Config
 {
-
   public String a = "aaasd";
   public String b = "ewq";
 

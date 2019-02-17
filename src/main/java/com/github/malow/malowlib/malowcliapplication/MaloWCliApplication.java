@@ -2,6 +2,7 @@ package com.github.malow.malowlib.malowcliapplication;
 
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,6 +42,7 @@ public abstract class MaloWCliApplication
     MaloWLogger.init();
     this.registerCommands();
     this.in = new Scanner(input);
+    this.in.useDelimiter("\n");
   }
 
   private void registerCommands()
@@ -49,7 +51,15 @@ public abstract class MaloWCliApplication
         .collect(Collectors.toList());
     for (Method method : commandMethods)
     {
-      this.commands.add(new MappedCommand(method.getName().toLowerCase(), method, method.getDeclaredAnnotation(Command.class).description()));
+      Parameter[] parametersForMethod = method.getParameters();
+      if (parametersForMethod.length > 0)
+      {
+        if (!parametersForMethod[0].getParameterizedType().equals(String.class))
+        {
+          throw new RuntimeException("Unsupported parameter type for command-method " + method.getName() + ", only 1 String is supported.");
+        }
+      }
+      this.commands.add(new MappedCommand(method.getName(), method, method.getDeclaredAnnotation(Command.class).description()));
     }
   }
 
@@ -63,24 +73,45 @@ public abstract class MaloWCliApplication
     this.onStart();
     while (this.run)
     {
-      String input = this.in.next().toLowerCase();
-      Optional<MappedCommand> mappedComamnd = this.getMappedCommandByName(input);
-      if (mappedComamnd.isPresent())
+      String input = this.in.next();
+      if (input.endsWith("\r"))
+      {
+        input = input.substring(0, input.length() - 1);
+      }
+      String command = input;
+      String arguments = "";
+      int firstSpaceIndex = input.indexOf(" ");
+      if (firstSpaceIndex != -1)
+      {
+        command = input.substring(0, firstSpaceIndex);
+        arguments = input.substring(firstSpaceIndex + 1);
+      }
+
+      Optional<MappedCommand> mappedCommand = this.getMappedCommandByName(command);
+      if (mappedCommand.isPresent())
       {
         try
         {
           long before = System.currentTimeMillis();
-          mappedComamnd.get().method.invoke(this);
-          MaloWLogger.info("Finished command " + input + " in " + (System.currentTimeMillis() - before) + "ms.");
+          Parameter[] parametersForMethod = mappedCommand.get().method.getParameters();
+          if (parametersForMethod.length > 0)
+          {
+            mappedCommand.get().method.invoke(this, arguments);
+          }
+          else
+          {
+            mappedCommand.get().method.invoke(this);
+          }
+          MaloWLogger.info("Finished command " + command + " in " + (System.currentTimeMillis() - before) + "ms.");
         }
         catch (Exception e)
         {
-          MaloWLogger.error("Failed to run command: " + input, e);
+          MaloWLogger.error("Failed to run command: " + command, e);
         }
       }
       else
       {
-        System.out.println("Unsupported command: " + input);
+        System.out.println("Unsupported command: " + command);
       }
     }
     this.onStop();

@@ -2,7 +2,11 @@ package com.github.malow.malowlib;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -16,18 +20,24 @@ import com.google.gson.JsonSerializer;
 
 public class GsonSingleton
 {
-  private static final DateTimeFormatter LOCALDATETIME_FORMATTER = DateTimeFormatter.ISO_DATE_TIME;//.ofPattern("yyyy-MM-dd'T'HH:mm'Z'");
+  private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+  private static final DateTimeFormatter LOCAL_DATE_TIME_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
-  private static Gson gson = new GsonBuilder()
-      .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer())
-      .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer())
+  private static Gson gson = createGsonBuilder()
       .create();
 
-  private static Gson prettyGson = new GsonBuilder()
+  private static Gson prettyGson = createGsonBuilder()
       .setPrettyPrinting()
-      .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer())
-      .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer())
       .create();
+
+  private static GsonBuilder createGsonBuilder()
+  {
+    return new GsonBuilder()
+        .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer())
+        .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer())
+        .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeSerializer())
+        .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeDeserializer());
+  }
 
   private GsonSingleton()
   {
@@ -73,17 +83,13 @@ public class GsonSingleton
     }
   }
 
-  public static <T> T fromJson(String json, Type type)
+  public static <T> List<T> fromJsonAsList(String json, Class<T[]> targetClass)
   {
-    try
+    if (json == null || json.equals(""))
     {
-      return gson.fromJson(json, type);
+      return new ArrayList<>();
     }
-    catch (Exception e)
-    {
-      MaloWLogger.error("Failed to parse String " + json + " into an object of type " + type.getTypeName(), e);
-      return null;
-    }
+    return Arrays.asList(fromJson(json, targetClass));
   }
 
   // Serializers/Deserializers
@@ -92,7 +98,7 @@ public class GsonSingleton
     @Override
     public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context)
     {
-      return new JsonPrimitive(LOCALDATETIME_FORMATTER.format(src));
+      return new JsonPrimitive(LOCAL_DATE_TIME_FORMATTER.format(src));
     }
   }
 
@@ -102,7 +108,26 @@ public class GsonSingleton
     @Override
     public LocalDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
     {
-      return LocalDateTime.parse(json.getAsString(), LOCALDATETIME_FORMATTER);
+      return LocalDateTime.parse(json.getAsString(), LOCAL_DATE_TIME_FORMATTER);
+    }
+  }
+
+  private static class ZonedDateTimeSerializer implements JsonSerializer<ZonedDateTime>
+  {
+    @Override
+    public JsonElement serialize(ZonedDateTime src, Type typeOfSrc, JsonSerializationContext context)
+    {
+      return new JsonPrimitive(DATETIME_FORMATTER.format(src));
+    }
+  }
+
+  private static class ZonedDateTimeDeserializer implements JsonDeserializer<ZonedDateTime>
+  {
+
+    @Override
+    public ZonedDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
+    {
+      return ZonedDateTime.parse(json.getAsString(), DATETIME_FORMATTER);
     }
   }
 }

@@ -69,7 +69,7 @@ public class ConfigHandler
       }
       catch (Exception e)
       {
-        config = configClass.newInstance();
+        config = configClass.getDeclaredConstructor().newInstance();
         if (fileContents != null)
         {
           // Save corrupted existing file before overwriting it with a fresh new
@@ -112,7 +112,7 @@ public class ConfigHandler
   @SuppressWarnings("unchecked")
   private static <T extends Config> Class<T> getClassWithVersion(String version, Class<T> configClass) throws Exception
   {
-    T current = configClass.newInstance();
+    T current = configClass.getDeclaredConstructor().newInstance();
     while (true)
     {
       if (current.getVersion().equals(version))
@@ -122,7 +122,7 @@ public class ConfigHandler
       Class<T> previousClass = (Class<T>) current.getPreviousVersionClass();
       if (previousClass != null)
       {
-        current = previousClass.newInstance();
+        current = previousClass.getDeclaredConstructor().newInstance();
       }
       else
       {
@@ -139,7 +139,7 @@ public class ConfigHandler
       Class<T> nextClass = (Class<T>) current.getNextVersionClass();
       if (nextClass != null)
       {
-        T upgraded = nextClass.newInstance();
+        T upgraded = nextClass.getDeclaredConstructor().newInstance();
         upgraded.upgrade(current);
         current = upgraded;
       }

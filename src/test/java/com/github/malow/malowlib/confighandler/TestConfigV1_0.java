@@ -2,7 +2,6 @@ package com.github.malow.malowlib.confighandler;
 
 public class TestConfigV1_0 extends Config
 {
-
   public String a = "asd";
 
   @Override

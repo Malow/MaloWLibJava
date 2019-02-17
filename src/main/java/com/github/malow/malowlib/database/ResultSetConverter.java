@@ -4,10 +4,19 @@ import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 
 public class ResultSetConverter
 {
-  public static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm[:ss][.SSS]");
+  public static final DateTimeFormatter dateFormatter = new DateTimeFormatterBuilder()
+      .appendPattern("yyyy-MM-dd'T'HH:mm:ss")
+      .optionalStart()
+      .appendPattern(".SSSSSSSSS")
+      .optionalEnd()
+      .optionalStart()
+      .appendPattern(".SSSSSS")
+      .optionalEnd()
+      .toFormatter();
 
   public static Object getValueFromResultSetForField(Field field, Class<?> fieldClass, ResultSet resultSet) throws Exception
   {

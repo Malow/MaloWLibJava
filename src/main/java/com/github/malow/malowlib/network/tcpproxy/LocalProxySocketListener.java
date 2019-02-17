@@ -69,6 +69,11 @@ public class LocalProxySocketListener extends MaloWProcess
     }
   }
 
+  public void sendPackageToRemote(byte[] bytes) throws Exception
+  {
+    this.clients.get(0).sendToRemote(bytes);
+  }
+
   @Override
   public void closeSpecific()
   {

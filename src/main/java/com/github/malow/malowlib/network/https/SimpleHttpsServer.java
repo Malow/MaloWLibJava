@@ -163,19 +163,19 @@ public class SimpleHttpsServer
 
     CertificateFactory cf = CertificateFactory.getInstance("X.509");
     Certificate cert0;
-    try (FileInputStream cert0Input = new FileInputStream(letsEncryptFolderPath + "/domain.crt"))
+    try (FileInputStream cert0Input = new FileInputStream(letsEncryptFolderPath + "/domain-chain.crt"))
     {
       cert0 = cf.generateCertificate(cert0Input);
-    }
-    Certificate cert1;
-    try (FileInputStream cert1Input = new FileInputStream(letsEncryptFolderPath + "/chain.crt"))
-    {
-      cert1 = cf.generateCertificate(cert1Input);
-    }
+    } /*
+      Certificate cert1;
+      try (FileInputStream cert1Input = new FileInputStream(letsEncryptFolderPath + "/chain.crt"))
+      {
+       cert1 = cf.generateCertificate(cert1Input);
+      }*/
 
     KeyStore ks = KeyStore.getInstance("jks"); // type doesn't really matter since it's in memory only
     ks.load(null);
-    ks.setKeyEntry("anyalias", kp.getPrivate(), sslPassword.toCharArray(), new Certificate[] { cert0, cert1 });
+    ks.setKeyEntry("anyalias", kp.getPrivate(), sslPassword.toCharArray(), new Certificate[] { cert0/*, cert1*/ });
     return ks;
   }
 

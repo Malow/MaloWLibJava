@@ -1,6 +1,7 @@
 package com.github.malow.malowlib.malowcliapplication;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.InputStream;
 import java.io.PipedInputStream;
@@ -10,21 +11,27 @@ import org.junit.Test;
 
 public class MaloWCliApplicationTest
 {
-
   private static class MaloWCliApplicationForTest extends MaloWCliApplication
   {
-    public boolean isApa = false;
+    public boolean isMonkey = false;
     public boolean exitedSpecific = false;
+    public String text = "";
 
     public MaloWCliApplicationForTest(InputStream in)
     {
       super(in);
     }
 
-    @Command(description = "Sets isApa to true")
-    public void apa()
+    @Command(description = "Sets isMonkey to true")
+    public void monkey()
     {
-      this.isApa = true;
+      this.isMonkey = true;
+    }
+
+    @Command(description = "Sets text to input")
+    public void say(String text)
+    {
+      this.text = text;
     }
 
     @Command(description = "Closes the application and sets exitedSpecific to true")
@@ -37,7 +44,7 @@ public class MaloWCliApplicationTest
   }
 
   @Test
-  public void test() throws Exception
+  public void testSuccessfully() throws Exception
   {
     try (PipedInputStream in = new PipedInputStream(); PipedOutputStream out = new PipedOutputStream(in);)
     {
@@ -51,7 +58,10 @@ public class MaloWCliApplicationTest
           try
           {
             Thread.sleep(10);
-            out.write("apa\n".getBytes());
+            out.write("monkey\n".getBytes());
+            out.flush();
+            Thread.sleep(10);
+            out.write("say hello\n".getBytes());
             out.flush();
             Thread.sleep(10);
             out.write("exit\n".getBytes());
@@ -67,8 +77,27 @@ public class MaloWCliApplicationTest
       inputThread.start();
       cliApp.run();
 
-      assertThat(cliApp.isApa).isTrue();
+      assertThat(cliApp.isMonkey).isTrue();
+      assertThat(cliApp.text).isEqualTo("hello");
       assertThat(cliApp.exitedSpecific).isTrue();
     }
+  }
+
+  private static class BadMaloWCliApplicationForTest extends MaloWCliApplication
+  {
+    @Command(description = "Should throw exception due to bad parameter")
+    public void bad(int text)
+    {
+    }
+  }
+
+  @Test
+  public void testThatExceptionIsThrownForBadCommandParameters() throws Exception
+  {
+    assertThatThrownBy(() ->
+    {
+      new BadMaloWCliApplicationForTest();
+    }).isInstanceOf(RuntimeException.class)
+        .hasMessage("Unsupported parameter type for command-method bad, only 1 String is supported.");
   }
 }
