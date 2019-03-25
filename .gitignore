@@ -3,6 +3,7 @@
 /LetsEncryptCerts
 *.db
 *.cfg
+*.json
 
 # Created by https://www.gitignore.io/api/java,eclipse
 

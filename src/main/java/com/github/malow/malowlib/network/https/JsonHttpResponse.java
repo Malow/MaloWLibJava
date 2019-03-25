@@ -1,10 +1,10 @@
 package com.github.malow.malowlib.network.https;
 
-public class HttpResponse
+public class JsonHttpResponse
 {
   public boolean result;
 
-  public HttpResponse(boolean result)
+  public JsonHttpResponse(boolean result)
   {
     this.result = result;
   }

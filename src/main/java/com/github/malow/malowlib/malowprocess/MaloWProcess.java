@@ -255,8 +255,18 @@ public abstract class MaloWProcess
     return this.processName;
   }
 
-  public String getThreadName()
+  public List<String> getStackTracesForAllThreads()
   {
-    return Thread.currentThread().getName();
+    List<String> list = new ArrayList<>();
+    for (ProcessThread thread : this.threads)
+    {
+      StringBuffer buf = new StringBuffer();
+      for (StackTraceElement element : thread.getStackTrace())
+      {
+        buf.append("\n    at " + element.toString());
+      }
+      list.add(buf.toString());
+    }
+    return list;
   }
 }

@@ -1,6 +1,6 @@
 package com.github.malow.malowlib.network.https;
 
-public interface HttpRequest
+public interface JsonHttpRequest
 {
   public boolean isValid();
 }

@@ -12,7 +12,7 @@ import com.github.malow.malowlib.MaloWUtils;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
-public abstract class HttpRequestHandler<RequestClass extends HttpRequest> implements HttpHandler
+public abstract class HttpRequestHandler<RequestClass extends JsonHttpRequest> implements HttpHandler
 {
   public static class BadRequestException extends Exception
   {
@@ -40,7 +40,7 @@ public abstract class HttpRequestHandler<RequestClass extends HttpRequest> imple
     try
     {
       RequestClass request = this.createValidJsonRequest(stringRequest);
-      HttpResponse response = this.handleRequestAndGetResponse(request);
+      JsonHttpResponse response = this.handleRequestAndGetResponse(request);
       String stringResponse = GsonSingleton.toJson(response);
       if (stringResponse != null)
       {
@@ -58,7 +58,7 @@ public abstract class HttpRequestHandler<RequestClass extends HttpRequest> imple
     }
   }
 
-  public abstract HttpResponse handleRequestAndGetResponse(RequestClass request) throws BadRequestException;
+  public abstract JsonHttpResponse handleRequestAndGetResponse(RequestClass request) throws BadRequestException;
 
   private static void sendResponse(HttpExchange t, int code, String response)
   {
