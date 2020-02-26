@@ -8,9 +8,9 @@ import java.net.Socket;
 
 import com.github.malow.malowlib.MaloWLogger;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
-import com.github.malow.malowlib.network.NetworkChannel;
+import com.github.malow.malowlib.network.ThreadedNetworkChannel;
 
-public class MessageNetworkChannel extends NetworkChannel
+public class MessageNetworkChannel extends ThreadedNetworkChannel
 {
   private PrintWriter out;
   private BufferedReader in;

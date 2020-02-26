@@ -15,6 +15,7 @@ public abstract class MaloWProcess
     public ProcessThread(String processName)
     {
       super(processName);
+      this.setDaemon(true);
     }
 
     @Override

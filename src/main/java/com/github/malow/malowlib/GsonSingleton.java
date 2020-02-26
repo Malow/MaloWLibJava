@@ -83,6 +83,19 @@ public class GsonSingleton
     }
   }
 
+  public static <T> T fromJson(String json, Type type)
+  {
+    try
+    {
+      return gson.fromJson(json, type);
+    }
+    catch (Exception e)
+    {
+      MaloWLogger.error("Failed to parse String " + json + " into an object of type " + type.getTypeName(), e);
+      return null;
+    }
+  }
+
   public static <T> List<T> fromJsonAsList(String json, Class<T[]> targetClass)
   {
     if (json == null || json.equals(""))

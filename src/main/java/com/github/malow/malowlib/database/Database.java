@@ -6,6 +6,7 @@ import java.util.Map;
 import com.github.malow.malowlib.MaloWLogger;
 import com.github.malow.malowlib.database.DatabaseExceptions.SimultaneousModificationException;
 import com.github.malow.malowlib.database.DatabaseExceptions.TimeoutException;
+import com.github.malow.malowlib.lambdainterfaces.CheckedFunction;
 
 public class Database
 {
@@ -28,12 +29,6 @@ public class Database
       }
       return accessor;
     }
-  }
-
-  @FunctionalInterface
-  public interface CheckedFunction
-  {
-    void apply() throws Exception;
   }
 
   private static final int TIMEOUT_MS = 100;

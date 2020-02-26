@@ -15,14 +15,14 @@ public class PreparedStatementPool
   private BlockingDeque<PreparedStatement> statements = new LinkedBlockingDeque<>();
   private Integer statementsParam;
 
-  PreparedStatementPool(Connection connection, String statementString, Integer statementParam)
+  public PreparedStatementPool(Connection connection, String statementString, Integer statementParam)
   {
     this.connection = connection;
     this.statementString = statementString;
     this.statementsParam = statementParam;
   }
 
-  PreparedStatementPool(Connection connection, String statementString)
+  public PreparedStatementPool(Connection connection, String statementString)
   {
     this(connection, statementString, null);
   }

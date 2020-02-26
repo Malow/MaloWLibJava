@@ -30,7 +30,7 @@ public abstract class SocketAcceptor extends MaloWProcess
     }
   }
 
-  private NetworkChannel listenForNewClient()
+  private ThreadedNetworkChannel listenForNewClient()
   {
     try
     {
@@ -50,14 +50,14 @@ public abstract class SocketAcceptor extends MaloWProcess
     return null;
   }
 
-  protected abstract NetworkChannel createNetworkChannel(Socket socket);
+  protected abstract ThreadedNetworkChannel createNetworkChannel(Socket socket);
 
   @Override
   public void life()
   {
     while (this.stayAlive)
     {
-      NetworkChannel nc = this.listenForNewClient();
+      ThreadedNetworkChannel nc = this.listenForNewClient();
       if (nc != null && this.stayAlive)
       {
         this.notifier.putEvent(new ClientConnectedEvent(nc));

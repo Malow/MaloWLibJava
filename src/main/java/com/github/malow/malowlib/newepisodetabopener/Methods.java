@@ -94,7 +94,7 @@ public class Methods
       SeriesEpisodesResponse response = GsonSingleton.fromJson(responseJson, SeriesEpisodesResponse.class);
       for (SeriesEpisodesResponse.Data data : response.data)
       {
-        if (data.firstAired.isEmpty())
+        if (data.firstAired.isEmpty() || data.firstAired.equals("0000-00-00"))
         {
           continue;
         }

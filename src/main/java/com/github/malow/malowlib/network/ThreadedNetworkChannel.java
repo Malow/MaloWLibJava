@@ -9,7 +9,7 @@ import com.github.malow.malowlib.MaloWLogger;
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
 
-public abstract class NetworkChannel extends MaloWProcess
+public abstract class ThreadedNetworkChannel extends MaloWProcess
 {
   private static long nextID = 0;
 
@@ -25,14 +25,14 @@ public abstract class NetworkChannel extends MaloWProcess
 
   private BlockingQueue<ProcessEvent> bufferQueue = new LinkedBlockingQueue<>();
 
-  public NetworkChannel(Socket socket)
+  public ThreadedNetworkChannel(Socket socket)
   {
     this.socket = socket;
     this.init();
     this.start();
   }
 
-  public NetworkChannel(String ip, int port)
+  public ThreadedNetworkChannel(String ip, int port)
   {
     try
     {

@@ -102,7 +102,7 @@ public abstract class MaloWCliApplication
           {
             mappedCommand.get().method.invoke(this);
           }
-          MaloWLogger.info("Finished command " + command + " in " + (System.currentTimeMillis() - before) + "ms.");
+          MaloWLogger.info("Finished command '" + command + "' in " + (System.currentTimeMillis() - before) + "ms.");
         }
         catch (Exception e)
         {

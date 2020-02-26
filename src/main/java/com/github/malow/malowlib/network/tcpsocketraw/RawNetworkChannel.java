@@ -5,9 +5,9 @@ import java.net.Socket;
 
 import com.github.malow.malowlib.MaloWLogger;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
-import com.github.malow.malowlib.network.NetworkChannel;
+import com.github.malow.malowlib.network.ThreadedNetworkChannel;
 
-public class RawNetworkChannel extends NetworkChannel
+public class RawNetworkChannel extends ThreadedNetworkChannel
 {
   public RawNetworkChannel(String ip, int port)
   {

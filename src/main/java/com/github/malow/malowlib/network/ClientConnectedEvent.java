@@ -4,9 +4,9 @@ import com.github.malow.malowlib.malowprocess.ProcessEvent;
 
 public class ClientConnectedEvent extends ProcessEvent
 {
-  public NetworkChannel client;
+  public ThreadedNetworkChannel client;
 
-  public ClientConnectedEvent(NetworkChannel client)
+  public ClientConnectedEvent(ThreadedNetworkChannel client)
   {
     this.client = client;
   }

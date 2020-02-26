@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.github.malow.malowlib.lambdainterfaces.CheckedFunctionWithParameter;
+
 public class PersistedData
 {
   public static volatile Map<String, DataContainer<?>> dataFiles = new HashMap<>();
@@ -28,12 +30,6 @@ public class PersistedData
     }
   }
 
-  @FunctionalInterface
-  public interface FunctionWithReturn<T>
-  {
-    void apply(T data) throws Exception;
-  }
-
   /**
    * @param dataClass
    *          The class of the data you want to be working with in the Lambda-function
@@ -44,7 +40,7 @@ public class PersistedData
    * @return The data-object. Do note that further changes to this object outside of the Lambda-function will probably not be persisted to the file.
    * @throws Exception
    */
-  public static <T> T useData(Class<T> dataClass, String file, FunctionWithReturn<T> f) throws Exception
+  public static <T> T useData(Class<T> dataClass, String file, CheckedFunctionWithParameter<T> f) throws Exception
   {
     T data = getOrLoadData(file, dataClass);
     try

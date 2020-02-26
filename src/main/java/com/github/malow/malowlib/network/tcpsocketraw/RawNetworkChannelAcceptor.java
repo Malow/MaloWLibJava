@@ -3,7 +3,7 @@ package com.github.malow.malowlib.network.tcpsocketraw;
 import java.net.Socket;
 
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
-import com.github.malow.malowlib.network.NetworkChannel;
+import com.github.malow.malowlib.network.ThreadedNetworkChannel;
 import com.github.malow.malowlib.network.SocketAcceptor;
 
 public class RawNetworkChannelAcceptor extends SocketAcceptor
@@ -14,7 +14,7 @@ public class RawNetworkChannelAcceptor extends SocketAcceptor
   }
 
   @Override
-  protected NetworkChannel createNetworkChannel(Socket socket)
+  protected ThreadedNetworkChannel createNetworkChannel(Socket socket)
   {
     return new RawNetworkChannel(socket);
   }
