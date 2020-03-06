@@ -78,6 +78,10 @@ public abstract class MaloWCliApplication
       {
         input = input.substring(0, input.length() - 1);
       }
+      if (input.isEmpty())
+      {
+        continue;
+      }
       String command = input;
       String arguments = "";
       int firstSpaceIndex = input.indexOf(" ");
