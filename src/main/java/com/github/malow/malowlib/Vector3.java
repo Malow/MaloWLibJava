@@ -20,6 +20,13 @@ public class Vector3
     this.z = z;
   }
 
+  public Vector3(Vector3 old)
+  {
+    this.x = old.x;
+    this.y = old.y;
+    this.z = old.z;
+  }
+
   public Vector3(float[] array)
   {
     if (array.length != 3)
@@ -109,20 +116,46 @@ public class Vector3
     return true;
   }
 
+  public float getDistance(Vector3 otherPos)
+  {
+    return this.sub(otherPos).length();
+  }
+
   public float length()
   {
     return (float) Math.sqrt(this.dot(this));
   }
 
+  public void setLength(float desiredLength)
+  {
+    if (desiredLength < 0.0f)
+    {
+      MaloWLogger.error("Tried to set a Vector's length to " + desiredLength);
+      return;
+    }
+    if (desiredLength == 0.0f)
+    {
+      this.x = 0.0f;
+      this.y = 0.0f;
+      this.z = 0.0f;
+      return;
+    }
+    float currentLength = this.length();
+    if (currentLength == 0.0f)
+    {
+      MaloWLogger.error("Tried to set a 0-length Vector's length to " + desiredLength);
+      return;
+    }
+
+    float multiplier = desiredLength / currentLength;
+    this.x *= multiplier;
+    this.y *= multiplier;
+    this.z *= multiplier;
+  }
+
   public void normalize()
   {
-    float length = this.length();
-    if (length > 0.0f)
-    {
-      this.x /= length;
-      this.y /= length;
-      this.z /= length;
-    }
+    this.setLength(1.0f);
   }
 
   @Override

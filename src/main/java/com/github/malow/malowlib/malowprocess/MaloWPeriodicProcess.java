@@ -11,7 +11,7 @@ public abstract class MaloWPeriodicProcess extends MaloWProcess
 
   public MaloWPeriodicProcess(double updatesPerSecond)
   {
-    this.expectedUpdateDurationMs = (long) (1000 / updatesPerSecond);
+    this.setUpdatesPerSecond(updatesPerSecond);
   }
 
   public void setUpdatesPerSecond(double updatesPerSecond)
