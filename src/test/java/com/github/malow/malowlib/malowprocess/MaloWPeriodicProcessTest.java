@@ -2,6 +2,7 @@ package com.github.malow.malowlib.malowprocess;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.assertj.core.data.Offset;
 import org.assertj.core.data.Percentage;
 import org.junit.Test;
 
@@ -47,22 +48,44 @@ public class MaloWPeriodicProcessTest
     Thread.sleep(1000);
     assertThat(ft.diffSum).isCloseTo(1.0f, Percentage.withPercentage(5.0));
     assertThat(ft.updateCount).isCloseTo(100, Percentage.withPercentage(10.0));
-    assertThat(ft.getLoadPercentage()).isCloseTo(5, Percentage.withPercentage(100.0));
 
     ft.setUpdatesPerSecond(10);
 
     ft.sleepDuration = 10;
-    Thread.sleep(3000);
-    assertThat(ft.getLoadPercentage()).isCloseTo(10, Percentage.withPercentage(5.0));
+    Thread.sleep(2000);
+    assertThat(ft.getLoadData().percentage).isCloseTo(10, Offset.offset(2.0));
 
     ft.sleepDuration = 100;
-    Thread.sleep(3000);
-    assertThat(ft.getLoadPercentage()).isCloseTo(100, Percentage.withPercentage(5.0));
+    Thread.sleep(2000);
+    assertThat(ft.getLoadData().percentage).isCloseTo(100, Percentage.withPercentage(5.0));
 
     ft.sleepDuration = 200;
-    Thread.sleep(3000);
-    assertThat(ft.getLoadPercentage()).isCloseTo(150, Percentage.withPercentage(5.0));
+    Thread.sleep(2000);
+    assertThat(ft.getLoadData().percentage).isCloseTo(200, Percentage.withPercentage(5.0));
+
+    ft.sleepDuration = 10;
+    Thread.sleep(1000);
+    ft.sleepDuration = 5;
+    Thread.sleep(50);
+    ft.sleepDuration = 20;
+    Thread.sleep(100);
+    ft.sleepDuration = 10;
+    Thread.sleep(100);
+    assertThat(ft.getLoadData().min).isCloseTo(5, Offset.offset(2));
+    assertThat(ft.getLoadData().max).isCloseTo(20, Offset.offset(2));
+    assertThat(ft.getLoadData().avg).isCloseTo(10, Offset.offset(2));
 
     ft.closeAndWaitForCompletion();
+  }
+
+  //@Test
+  public void foreverTestThatLoadDataDoesntCrashStuff() throws Exception
+  {
+    MaloWPeriodicProcessForTestEasy ft = new MaloWPeriodicProcessForTestEasy(1000);
+    ft.start();
+    while (true)
+    {
+      ft.getLoadData();
+    }
   }
 }
