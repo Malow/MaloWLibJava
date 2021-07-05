@@ -58,7 +58,7 @@ public abstract class MaloWPeriodicProcess extends MaloWProcess
     }
   }
 
-  public abstract void update(float diff, long now);
+  protected abstract void update(float diff, long now);
 
   public static class LoadData
   {

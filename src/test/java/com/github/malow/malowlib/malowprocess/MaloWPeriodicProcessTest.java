@@ -20,7 +20,7 @@ public class MaloWPeriodicProcessTest
     }
 
     @Override
-    public void update(float diff, long now)
+    protected void update(float diff, long now)
     {
       this.updateCount++;
       this.diffSum += diff;
