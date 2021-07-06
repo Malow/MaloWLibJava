@@ -25,7 +25,7 @@ public abstract class HttpRequestHandler<RequestClass extends JsonHttpRequest> i
   {
     try
     {
-      this.requestClass = MaloWUtils.getGenericClassFor(this);
+      this.requestClass = MaloWUtils.getGenericClassForParent(this);
     }
     catch (ClassNotFoundException e)
     {

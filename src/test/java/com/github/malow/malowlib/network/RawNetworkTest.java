@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.github.malow.malowlib.network.tcpsocketraw.RawNetworkChannel;
+import com.github.malow.malowlib.network.deprecated.tcpsocketraw.RawNetworkChannel;
 
 public class RawNetworkTest extends RawNetworkFixture
 {

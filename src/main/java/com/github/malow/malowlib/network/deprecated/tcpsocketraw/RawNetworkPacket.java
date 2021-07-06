@@ -1,4 +1,4 @@
-package com.github.malow.malowlib.network.tcpsocketraw;
+package com.github.malow.malowlib.network.deprecated.tcpsocketraw;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
@@ -6,6 +6,7 @@ import java.util.Arrays;
 import com.github.malow.malowlib.MaloWLogger;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
 
+@Deprecated
 public class RawNetworkPacket extends ProcessEvent
 {
   public byte[] bytes;

@@ -1,4 +1,4 @@
-package com.github.malow.malowlib.network.tpcsocketmessage;
+package com.github.malow.malowlib.network.deprecated.tcpsocketmessage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,8 +8,9 @@ import java.net.Socket;
 
 import com.github.malow.malowlib.MaloWLogger;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
-import com.github.malow.malowlib.network.ThreadedNetworkChannel;
+import com.github.malow.malowlib.network.deprecated.ThreadedNetworkChannel;
 
+@Deprecated
 public class MessageNetworkChannel extends ThreadedNetworkChannel
 {
   private PrintWriter out;

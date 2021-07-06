@@ -1,7 +1,8 @@
-package com.github.malow.malowlib.network.tpcsocketmessage;
+package com.github.malow.malowlib.network.deprecated.tcpsocketmessage;
 
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
 
+@Deprecated
 public class NetworkMessage extends ProcessEvent
 {
   private String message;

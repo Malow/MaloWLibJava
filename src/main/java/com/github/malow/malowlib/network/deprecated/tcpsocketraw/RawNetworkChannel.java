@@ -1,12 +1,13 @@
-package com.github.malow.malowlib.network.tcpsocketraw;
+package com.github.malow.malowlib.network.deprecated.tcpsocketraw;
 
 import java.io.IOException;
 import java.net.Socket;
 
 import com.github.malow.malowlib.MaloWLogger;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
-import com.github.malow.malowlib.network.ThreadedNetworkChannel;
+import com.github.malow.malowlib.network.deprecated.ThreadedNetworkChannel;
 
+@Deprecated
 public class RawNetworkChannel extends ThreadedNetworkChannel
 {
   public RawNetworkChannel(String ip, int port)

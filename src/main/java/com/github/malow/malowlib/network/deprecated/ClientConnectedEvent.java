@@ -1,7 +1,8 @@
-package com.github.malow.malowlib.network;
+package com.github.malow.malowlib.network.deprecated;
 
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
 
+@Deprecated
 public class ClientConnectedEvent extends ProcessEvent
 {
   public ThreadedNetworkChannel client;

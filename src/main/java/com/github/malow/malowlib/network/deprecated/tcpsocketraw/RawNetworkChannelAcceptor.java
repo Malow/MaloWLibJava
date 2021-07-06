@@ -1,11 +1,12 @@
-package com.github.malow.malowlib.network.tcpsocketraw;
+package com.github.malow.malowlib.network.deprecated.tcpsocketraw;
 
 import java.net.Socket;
 
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
-import com.github.malow.malowlib.network.ThreadedNetworkChannel;
-import com.github.malow.malowlib.network.SocketAcceptor;
+import com.github.malow.malowlib.network.deprecated.SocketAcceptor;
+import com.github.malow.malowlib.network.deprecated.ThreadedNetworkChannel;
 
+@Deprecated
 public class RawNetworkChannelAcceptor extends SocketAcceptor
 {
   public RawNetworkChannelAcceptor(int port, MaloWProcess notifier)

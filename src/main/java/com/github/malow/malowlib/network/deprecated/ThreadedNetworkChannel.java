@@ -1,4 +1,4 @@
-package com.github.malow.malowlib.network;
+package com.github.malow.malowlib.network.deprecated;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -9,6 +9,7 @@ import com.github.malow.malowlib.MaloWLogger;
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
 
+@Deprecated
 public abstract class ThreadedNetworkChannel extends MaloWProcess
 {
   private static long nextID = 0;
@@ -19,6 +20,11 @@ public abstract class ThreadedNetworkChannel extends MaloWProcess
   }
 
   private long id = getAndIncrementId();
+
+  public long getChannelID()
+  {
+    return this.id;
+  }
 
   protected Socket socket = null;
   protected MaloWProcess notifier = null;
@@ -60,11 +66,6 @@ public abstract class ThreadedNetworkChannel extends MaloWProcess
   {
     this.notifier = notifier;
     this.sendQueuedEvents();
-  }
-
-  public long getChannelID()
-  {
-    return this.id;
   }
 
   @Override

@@ -7,7 +7,7 @@ import java.util.List;
 import org.junit.Test;
 
 import com.github.malow.malowlib.RandomNumberGenerator;
-import com.github.malow.malowlib.network.tpcsocketmessage.MessageNetworkChannel;
+import com.github.malow.malowlib.network.deprecated.tcpsocketmessage.MessageNetworkChannel;
 
 public class MessageNetworkTest extends MessageNetworkFixture
 {

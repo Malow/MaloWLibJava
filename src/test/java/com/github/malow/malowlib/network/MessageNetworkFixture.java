@@ -11,9 +11,11 @@ import org.junit.Before;
 
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
-import com.github.malow.malowlib.network.tpcsocketmessage.MessageNetworkChannel;
-import com.github.malow.malowlib.network.tpcsocketmessage.MessageNetworkChannelAcceptor;
-import com.github.malow.malowlib.network.tpcsocketmessage.NetworkMessage;
+import com.github.malow.malowlib.network.deprecated.ClientConnectedEvent;
+import com.github.malow.malowlib.network.deprecated.SocketAcceptor;
+import com.github.malow.malowlib.network.deprecated.tcpsocketmessage.MessageNetworkChannel;
+import com.github.malow.malowlib.network.deprecated.tcpsocketmessage.MessageNetworkChannelAcceptor;
+import com.github.malow.malowlib.network.deprecated.tcpsocketmessage.NetworkMessage;
 
 public class MessageNetworkFixture
 {

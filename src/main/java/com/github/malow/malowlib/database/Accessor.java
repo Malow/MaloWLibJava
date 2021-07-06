@@ -54,7 +54,7 @@ public class Accessor<Entity extends DatabaseTableEntity>
     this.connection = databaseConnection.connection;
     try
     {
-      this.entityClass = MaloWUtils.getGenericClassFor(this);
+      this.entityClass = MaloWUtils.getGenericClassForParent(this);
     }
     catch (ClassNotFoundException e)
     {

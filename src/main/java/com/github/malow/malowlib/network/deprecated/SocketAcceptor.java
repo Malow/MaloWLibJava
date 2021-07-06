@@ -1,4 +1,4 @@
-package com.github.malow.malowlib.network;
+package com.github.malow.malowlib.network.deprecated;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -11,6 +11,7 @@ import com.github.malow.malowlib.malowprocess.MaloWProcess;
  * Listens and accepts new TCP connections at specified port and sends ClientConnectedEvents to the specified notifier when a client connects.
  *
  */
+@Deprecated
 public abstract class SocketAcceptor extends MaloWProcess
 {
   private MaloWProcess notifier;
