@@ -1,4 +1,4 @@
-package com.github.malow.malowlib.network;
+package com.github.malow.malowlib.network.deprecated;
 
 import static org.junit.Assert.assertEquals;
 
@@ -9,6 +9,7 @@ import org.junit.Test;
 import com.github.malow.malowlib.RandomNumberGenerator;
 import com.github.malow.malowlib.network.deprecated.tcpsocketmessage.MessageNetworkChannel;
 
+@Deprecated
 public class MessageNetworkTest extends MessageNetworkFixture
 {
   @Test

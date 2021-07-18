@@ -1,9 +1,10 @@
-package com.github.malow.malowlib.network;
+package com.github.malow.malowlib.network.deprecated;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+@Deprecated
 public class MessageNetworkPerformanceTest extends MessageNetworkFixture
 {
   public static final int MESSAGES = 2000000;

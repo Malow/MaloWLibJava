@@ -1,4 +1,4 @@
-package com.github.malow.malowlib.network;
+package com.github.malow.malowlib.network.deprecated;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,11 +13,12 @@ import com.github.malow.malowlib.malowprocess.MaloWProcess;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
 import com.github.malow.malowlib.network.deprecated.ClientConnectedEvent;
 import com.github.malow.malowlib.network.deprecated.SocketAcceptor;
-import com.github.malow.malowlib.network.deprecated.tcpsocketmessage.MessageNetworkChannel;
-import com.github.malow.malowlib.network.deprecated.tcpsocketmessage.MessageNetworkChannelAcceptor;
-import com.github.malow.malowlib.network.deprecated.tcpsocketmessage.NetworkMessage;
+import com.github.malow.malowlib.network.deprecated.tcpsocketraw.RawNetworkChannel;
+import com.github.malow.malowlib.network.deprecated.tcpsocketraw.RawNetworkChannelAcceptor;
+import com.github.malow.malowlib.network.deprecated.tcpsocketraw.RawNetworkPacket;
 
-public class MessageNetworkFixture
+@Deprecated
+public class RawNetworkFixture
 {
   private static final String IP = "127.0.0.1";
   private static final int PORT = 10000;
@@ -25,8 +26,8 @@ public class MessageNetworkFixture
 
   protected static class TestServer extends MaloWProcess
   {
-    public volatile List<MessageNetworkChannel> clients = new ArrayList<>();
-    public volatile Map<MessageNetworkChannel, List<String>> messages = new HashMap<>();
+    public volatile List<RawNetworkChannel> clients = new ArrayList<>();
+    public volatile Map<RawNetworkChannel, List<byte[]>> messages = new HashMap<>();
 
     @Override
     public void life()
@@ -36,24 +37,24 @@ public class MessageNetworkFixture
         ProcessEvent ev = this.waitEvent();
         if (ev instanceof ClientConnectedEvent)
         {
-          MessageNetworkChannel client = (MessageNetworkChannel) ((ClientConnectedEvent) ev).client;
+          RawNetworkChannel client = (RawNetworkChannel) ((ClientConnectedEvent) ev).client;
           client.setNotifier(this);
           this.clients.add(client);
           this.messages.put(client, new ArrayList<>());
         }
-        else if (ev instanceof NetworkMessage)
+        else if (ev instanceof RawNetworkPacket)
         {
-          NetworkMessage np = (NetworkMessage) ev;
-          List<String> m = this.messages.get(np.getSender());
-          m.add(np.getMessage());
-          this.messages.put(np.getSender(), m);
+          RawNetworkPacket np = (RawNetworkPacket) ev;
+          List<byte[]> m = this.messages.get(np.from);
+          m.add(np.bytes);
+          this.messages.put(np.from, m);
         }
       }
     }
 
-    public void sendToAllClients(String msg)
+    public void sendToAllClients(byte[] bytes)
     {
-      this.clients.forEach(c -> c.sendMessage(msg));
+      this.clients.forEach(c -> c.sendRawData(bytes));
     }
 
     @Override
@@ -66,12 +67,12 @@ public class MessageNetworkFixture
 
   protected static class TestClient extends MaloWProcess
   {
-    public volatile MessageNetworkChannel networkChannel;
-    public volatile List<String> messages = new ArrayList<>();
+    public volatile RawNetworkChannel networkChannel;
+    public volatile List<byte[]> messages = new ArrayList<>();
 
     public TestClient()
     {
-      this.networkChannel = new MessageNetworkChannel(IP, PORT);
+      this.networkChannel = new RawNetworkChannel(IP, PORT);
       this.networkChannel.setNotifier(this);
     }
 
@@ -81,17 +82,17 @@ public class MessageNetworkFixture
       while (this.stayAlive)
       {
         ProcessEvent ev = this.waitEvent();
-        if (ev instanceof NetworkMessage)
+        if (ev instanceof RawNetworkPacket)
         {
-          NetworkMessage np = (NetworkMessage) ev;
-          this.messages.add(np.getMessage());
+          RawNetworkPacket np = (RawNetworkPacket) ev;
+          this.messages.add(np.bytes);
         }
       }
     }
 
-    public void sendToServer(String msg)
+    public void sendToServer(byte[] bytes)
     {
-      this.networkChannel.sendMessage(msg);
+      this.networkChannel.sendRawData(bytes);
     }
 
     @Override
@@ -112,7 +113,7 @@ public class MessageNetworkFixture
     this.testServer = new TestServer();
     this.testServer.start();
 
-    this.testSocketlistener = new MessageNetworkChannelAcceptor(PORT, this.testServer);
+    this.testSocketlistener = new RawNetworkChannelAcceptor(PORT, this.testServer);
     this.testSocketlistener.start();
 
     this.testClient = new TestClient();

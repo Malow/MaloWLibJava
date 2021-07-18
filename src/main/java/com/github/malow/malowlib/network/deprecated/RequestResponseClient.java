@@ -1,10 +1,12 @@
-package com.github.malow.malowlib;
+package com.github.malow.malowlib.network.deprecated;
 
+import com.github.malow.malowlib.MaloWLogger;
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
 import com.github.malow.malowlib.network.deprecated.tcpsocketmessage.MessageNetworkChannel;
 import com.github.malow.malowlib.network.deprecated.tcpsocketmessage.NetworkMessage;
 
+@Deprecated
 public class RequestResponseClient extends MaloWProcess
 {
   private String ip;

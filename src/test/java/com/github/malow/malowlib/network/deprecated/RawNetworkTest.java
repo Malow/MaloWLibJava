@@ -1,4 +1,4 @@
-package com.github.malow.malowlib.network;
+package com.github.malow.malowlib.network.deprecated;
 
 import static org.junit.Assert.assertEquals;
 
@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import com.github.malow.malowlib.network.deprecated.tcpsocketraw.RawNetworkChannel;
 
+@Deprecated
 public class RawNetworkTest extends RawNetworkFixture
 {
   @Test
