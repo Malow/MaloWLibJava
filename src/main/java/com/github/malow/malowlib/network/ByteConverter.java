@@ -17,4 +17,11 @@ public class ByteConverter
     ByteBuffer.wrap(b).putDouble(d);
     return b;
   }
+
+  public static byte[] fromLong(long l)
+  {
+    byte[] b = new byte[8];
+    ByteBuffer.wrap(b).putLong(l);
+    return b;
+  }
 }

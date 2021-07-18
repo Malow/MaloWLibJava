@@ -41,14 +41,14 @@ public class ByteableTest
     public List<Integer> i;
 
     @Override
-    protected void readFromBytes(ByteBuffer bb) throws Exception
+    protected void readFromBytes(ByteReader byteReader) throws Exception
     {
-      this.s = this.readString(bb);
+      this.s = byteReader.readString();
       this.i = new ArrayList<>();
-      int length = bb.getInt();
+      int length = byteReader.readInt();
       for (int i = 0; i < length; i++)
       {
-        this.i.add(bb.getInt());
+        this.i.add(byteReader.readInt());
       }
     }
 
@@ -100,29 +100,29 @@ public class ByteableTest
     }
 
     @Override
-    protected void readFromBytes(ByteBuffer bb) throws Exception
+    protected void readFromBytes(ByteReader byteReader) throws Exception
     {
-      this.s = this.readString(bb);
+      this.s = byteReader.readString();
       this.i = new ArrayList<>();
-      int length = bb.getInt();
+      int length = byteReader.readInt();
       for (int i = 0; i < length; i++)
       {
-        this.i.add(bb.getInt());
+        this.i.add(byteReader.readInt());
       }
       this.d = new ArrayList<>();
-      int length2 = bb.getInt();
+      int length2 = byteReader.readInt();
       for (int i = 0; i < length2; i++)
       {
         List<Double> list = new ArrayList<>();
-        int length3 = bb.getInt();
+        int length3 = byteReader.readInt();
         for (int u = 0; u < length3; u++)
         {
-          list.add(bb.getDouble());
+          list.add(byteReader.readDouble());
         }
         this.d.add(list);
       }
-      this.b = this.readBoolean(bb);
-      this.inner = Byteable.create(bb, InnerTestData.class);
+      this.b = byteReader.readBoolean();
+      this.inner = byteReader.readByteable(InnerTestData.class);
     }
 
     @Override

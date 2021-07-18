@@ -28,4 +28,15 @@ public class MaloWUtils
     type = ((Type[]) f2.get(type))[0];
     return (Class<T>) type;
   }
+
+  public static void sleep(long millis)
+  {
+    try
+    {
+      Thread.sleep(millis);
+    }
+    catch (InterruptedException e)
+    {
+    }
+  }
 }
