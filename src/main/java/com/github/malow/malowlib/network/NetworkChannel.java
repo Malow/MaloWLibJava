@@ -7,6 +7,8 @@ import java.nio.ByteBuffer;
 import java.util.Optional;
 
 import com.github.malow.malowlib.MaloWLogger;
+import com.github.malow.malowlib.byteconversion.ByteConverter;
+import com.github.malow.malowlib.byteconversion.Byteable;
 
 public abstract class NetworkChannel
 {

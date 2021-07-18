@@ -1,5 +1,9 @@
 package com.github.malow.malowlib.network;
 
+import com.github.malow.malowlib.byteconversion.ByteReader;
+import com.github.malow.malowlib.byteconversion.ByteWriter;
+import com.github.malow.malowlib.byteconversion.Byteable;
+
 public class StringPacket extends Byteable
 {
   public static StringPacket create(String message)

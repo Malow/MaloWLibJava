@@ -18,6 +18,9 @@ import java.util.UUID;
 import org.junit.Test;
 
 import com.github.malow.malowlib.GsonSingleton;
+import com.github.malow.malowlib.byteconversion.ByteReader;
+import com.github.malow.malowlib.byteconversion.ByteWriter;
+import com.github.malow.malowlib.byteconversion.Byteable;
 
 public class ByteableTest
 {

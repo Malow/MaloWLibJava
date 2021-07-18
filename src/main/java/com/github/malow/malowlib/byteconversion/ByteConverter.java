@@ -1,4 +1,4 @@
-package com.github.malow.malowlib.network;
+package com.github.malow.malowlib.byteconversion;
 
 import java.nio.ByteBuffer;
 

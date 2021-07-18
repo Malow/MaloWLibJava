@@ -12,6 +12,7 @@ import org.junit.Assert;
 import org.junit.Before;
 
 import com.github.malow.malowlib.MaloWUtils;
+import com.github.malow.malowlib.byteconversion.Byteable;
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
 
