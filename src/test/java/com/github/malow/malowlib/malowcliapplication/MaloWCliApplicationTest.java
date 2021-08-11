@@ -29,7 +29,7 @@ public class MaloWCliApplicationTest
     }
 
     @Command(description = "Sets text to input")
-    public void say(String text)
+    public void say(@Parameter(description = "text", flag = "-t") String text)
     {
       this.text = text;
     }
@@ -61,7 +61,7 @@ public class MaloWCliApplicationTest
             out.write("monkey\n".getBytes());
             out.flush();
             Thread.sleep(10);
-            out.write("say hello\n".getBytes());
+            out.write("say -t hello\n".getBytes());
             out.flush();
             Thread.sleep(10);
             out.write("exit\n".getBytes());
@@ -86,18 +86,19 @@ public class MaloWCliApplicationTest
   private static class BadMaloWCliApplicationForTest extends MaloWCliApplication
   {
     @Command(description = "Should throw exception due to bad parameter")
-    public void bad(int text)
+    public void bad(@Parameter(description = "asd", flag = "-dsa") @SuppressWarnings("unused") Object text)
     {
     }
   }
 
   @Test
-  public void testThatExceptionIsThrownForBadCommandParameters() throws Exception
+  public void testThatExceptionIsThrownForBadCommandParameters()
   {
     assertThatThrownBy(() ->
     {
       new BadMaloWCliApplicationForTest();
     }).isInstanceOf(RuntimeException.class)
-        .hasMessage("Unsupported parameter type for command-method bad, only 1 String is supported.");
+        .hasMessage(
+            "Unsupported parameter type 'java.lang.Object' for flag '-dsa' for command-method 'bad', only Strings, Integers, Doubles and Booleans are supported.");
   }
 }

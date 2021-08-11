@@ -10,14 +10,14 @@ Offload writing to syso/file to a separate thread to allow for minimum ms overhe
  */
 public class TcpProxy
 {
-  public static void main(String[] args) throws Exception
+  public static void main(String[] args)
   {
     MaloWLogger.setLoggingThresholdToInfo();
     TcpProxy tcpProxy = new TcpProxy();
     tcpProxy.run(8085, "140.89.160.249", 80);
   }
 
-  public void run(int localPort, String remoteIp, int remotePort) throws Exception
+  public void run(int localPort, String remoteIp, int remotePort)
   {
     LocalProxySocketListener sl = new LocalProxySocketListener(localPort, remoteIp, remotePort);
     sl.start();

@@ -47,7 +47,7 @@ public class MaloWPeriodicProcessTest
     ft.start();
     Thread.sleep(1000);
     assertThat(ft.diffSum).isCloseTo(1.0f, Percentage.withPercentage(5.0));
-    assertThat(ft.updateCount).isCloseTo(100, Percentage.withPercentage(10.0));
+    assertThat(ft.updateCount).isCloseTo(100, Percentage.withPercentage(15.0));
 
     ft.setUpdatesPerSecond(10);
 
@@ -79,7 +79,7 @@ public class MaloWPeriodicProcessTest
   }
 
   //@Test
-  public void foreverTestThatLoadDataDoesntCrashStuff() throws Exception
+  public void foreverTestThatLoadDataDoesntCrashStuff()
   {
     MaloWPeriodicProcessForTestEasy ft = new MaloWPeriodicProcessForTestEasy(1000);
     ft.start();

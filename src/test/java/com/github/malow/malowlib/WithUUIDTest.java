@@ -19,7 +19,7 @@ public class WithUUIDTest
   }
 
   @Test
-  public void test() throws Exception
+  public void test()
   {
     UUIDTest a = new UUIDTest(UUID.randomUUID());
     a.asd = 5;

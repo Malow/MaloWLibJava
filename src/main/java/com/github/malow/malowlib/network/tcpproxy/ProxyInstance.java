@@ -34,10 +34,7 @@ public class ProxyInstance extends MaloWProcess
     {
       return retCode;
     }
-    else
-    {
-      throw new Exception("Read failed, retCode: " + retCode);
-    }
+    throw new Exception("Read failed, retCode: " + retCode);
   }
 
   protected void send(byte[] bytes, Socket socket) throws Exception

@@ -1,82 +1,110 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.github.malow</groupId>
-  <artifactId>MaloWLibJava</artifactId>
-  <version>1.0</version>
-  <packaging>jar</packaging>
+	<groupId>com.github.malow</groupId>
+	<artifactId>MaloWLibJava</artifactId>
+	<version>1.0</version>
+	<packaging>jar</packaging>
+	
+	<name>MaloWLibJava</name>
+	<url>http://maven.apache.org</url>
+	
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	  
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<release>16</release>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>src/generated</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
-  <name>MaloWLibJava</name>
-  <url>http://maven.apache.org</url>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-  
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-	    <version>3.8.0</version>
-	    <configuration>
-        	<release>11</release>
-	    </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
-  <dependencies>
-    <!-- For-tests -->
-    <dependency>
-  		<groupId>junit</groupId>
-  		<artifactId>junit</artifactId>
-  		<version>4.12</version>
-	</dependency>
-	<dependency>
-    	<groupId>org.mockito</groupId>
-    	<artifactId>mockito-all</artifactId>
-    	<version>1.9.5</version>
-	</dependency>
-	<dependency>
-    	<groupId>org.assertj</groupId>
-    	<artifactId>assertj-core</artifactId>
-    	<version>3.6.2</version>
-	</dependency>
-    <!-- For HTTPSClient -->
-  	<dependency>
-  		<groupId>com.mashape.unirest</groupId>
-  		<artifactId>unirest-java</artifactId>
-  		<version>1.4.9</version>
-  	</dependency>
-    <!-- For HttpsPostHandler -->
-  	<dependency>
-  		<groupId>com.google.code.gson</groupId>
-  		<artifactId>gson</artifactId>
-  		<version>2.7</version>
-  	</dependency>
-    <!-- For LetsEncrypt -->
-	<dependency>
-	    <groupId>org.shredzone.acme4j</groupId>
-	    <artifactId>acme4j-client</artifactId>
-	    <version>2.3</version>
-	</dependency>
-	<dependency>
-	    <groupId>org.shredzone.acme4j</groupId>
-	    <artifactId>acme4j-utils</artifactId>
-	    <version>2.3</version>
-	</dependency>
-    <!-- For SQLite Database -->
-    <dependency>
-      <groupId>org.xerial</groupId>
-      <artifactId>sqlite-jdbc</artifactId>
-      <version>3.15.1</version>
-    </dependency>
-    <!-- For MYSQL Database -->
-  	<dependency>
-  		<groupId>mysql</groupId>
-  		<artifactId>mysql-connector-java</artifactId>
-  		<version>5.1.39</version>
-  	</dependency>
-  </dependencies>
+	<dependencies>
+		<!-- For-tests -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.10.19</version>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>3.20.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.reflections</groupId>
+			<artifactId>reflections</artifactId>
+			<version>0.9.12</version>
+		</dependency>
+		<!-- For HTTPSClient -->
+		<dependency>
+			<groupId>com.mashape.unirest</groupId>
+			<artifactId>unirest-java</artifactId>
+			<version>1.4.9</version>
+		</dependency>
+		<!-- For LetsEncrypt -->
+		<dependency>
+			<groupId>org.shredzone.acme4j</groupId>
+			<artifactId>acme4j-client</artifactId>
+			<version>2.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.shredzone.acme4j</groupId>
+			<artifactId>acme4j-utils</artifactId>
+			<version>2.3</version>
+		</dependency>
+		<!-- For SQLite Database -->
+		<dependency>
+			<groupId>org.xerial</groupId>
+			<artifactId>sqlite-jdbc</artifactId>
+			<version>3.15.1</version>
+		</dependency>
+		<!-- For MYSQL Database -->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.39</version>
+		</dependency>
+		<!-- For multiple things -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.7</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>3.15.3</version>
+		</dependency>
+	</dependencies>
 </project>

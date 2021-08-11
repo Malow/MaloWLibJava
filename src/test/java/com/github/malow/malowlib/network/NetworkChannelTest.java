@@ -11,7 +11,7 @@ import com.github.malow.malowlib.RandomNumberGenerator;
 public class NetworkChannelTest extends NetworkChannelFixture
 {
   @Test
-  public void testClientAndServerSendingMessagesBackAndForth() throws InterruptedException
+  public void testClientAndServerSendingMessagesBackAndForth() throws Exception
   {
     this.testClient.sendToServer("Hello");
     this.testServer.sendToAllClients("Welcome");
@@ -31,7 +31,7 @@ public class NetworkChannelTest extends NetworkChannelFixture
   }
 
   @Test
-  public void testClientAndServerSendingMessagesBackAndForth2() throws InterruptedException
+  public void testClientAndServerSendingMessagesBackAndForth2() throws Exception
   {
     this.testClient.sendToServer("Hello");
     this.testServer.sendToAllClients("Welcome");
@@ -51,7 +51,7 @@ public class NetworkChannelTest extends NetworkChannelFixture
   }
 
   @Test
-  public void testHugeMessageCanBeSent() throws InterruptedException
+  public void testHugeMessageCanBeSent() throws Exception
   {
     StringBuffer message = new StringBuffer();
     for (int i = 0; i < 1000000; i++)
@@ -71,7 +71,7 @@ public class NetworkChannelTest extends NetworkChannelFixture
   }
 
   @Test
-  public void testMessageContainingLinebreakCanBeSent() throws InterruptedException
+  public void testMessageContainingLinebreakCanBeSent() throws Exception
   {
     this.testServer.sendToAllClients("Wel\ncome");
 

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -13,14 +14,16 @@ import org.junit.Before;
 import com.github.malow.malowlib.MaloWUtils;
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
+import com.github.malow.malowlib.network.ProtoNetworkChannelTest.TestProtoNetworkChannel;
+import com.google.protobuf.Message;
 
-public class NetworkChannelFixture
+public class ProtoNetworkChannelFixture
 {
   private static final String IP = "127.0.0.1";
   private static final int PORT = 10000;
   private static final int TIMEOUT_MS = 1000;
 
-  protected static class TestSocketAcceptor extends SocketAcceptor<StringNetworkChannel>
+  protected static class TestSocketAcceptor extends SocketAcceptor<TestProtoNetworkChannel>
   {
     public TestSocketAcceptor(int port, MaloWProcess notifier)
     {
@@ -28,16 +31,16 @@ public class NetworkChannelFixture
     }
 
     @Override
-    protected StringNetworkChannel createNetworkChannel(Socket socket)
+    protected TestProtoNetworkChannel createNetworkChannel(Socket socket)
     {
-      return new StringNetworkChannel(socket);
+      return new TestProtoNetworkChannel(socket);
     }
   }
 
   protected static class TestServer extends MaloWProcess
   {
-    public volatile List<StringNetworkChannel> clients = new ArrayList<>();
-    public volatile Map<StringNetworkChannel, List<String>> messages = new HashMap<>();
+    public volatile List<TestProtoNetworkChannel> clients = new ArrayList<>();
+    public volatile Map<TestProtoNetworkChannel, List<Message>> messages = new HashMap<>();
 
     @Override
     public void life()
@@ -47,28 +50,21 @@ public class NetworkChannelFixture
         ProcessEvent ev = this.peekEvent();
         if (ev != null && ev instanceof ClientConnectedEvent cce)
         {
-          StringNetworkChannel client = cce.getClient();
+          TestProtoNetworkChannel client = cce.getClient();
           this.clients.add(client);
           this.messages.put(client, new ArrayList<>());
         }
-        for (StringNetworkChannel client : this.clients)
+        for (TestProtoNetworkChannel client : this.clients)
         {
-          client.receive().ifPresent(message ->
+          Optional<Message> msg = client.recieve();
+          msg.ifPresent(message ->
           {
-            List<String> m = this.messages.get(client);
+            List<Message> m = this.messages.get(client);
             m.add(message);
             this.messages.put(client, m);
           });
         }
         MaloWUtils.ignoreException(() -> Thread.sleep(10));
-      }
-    }
-
-    public void sendToAllClients(String msg)
-    {
-      for (StringNetworkChannel client : this.clients)
-      {
-        client.send(msg);
       }
     }
 
@@ -81,12 +77,12 @@ public class NetworkChannelFixture
 
   protected static class TestClient extends MaloWProcess
   {
-    public volatile StringNetworkChannel networkChannel;
-    public volatile List<String> messages = new ArrayList<>();
+    public volatile TestProtoNetworkChannel networkChannel;
+    public volatile List<Message> messages = new ArrayList<>();
 
     public TestClient()
     {
-      this.networkChannel = new StringNetworkChannel(IP, PORT);
+      this.networkChannel = new TestProtoNetworkChannel(IP, PORT);
     }
 
     @Override
@@ -94,17 +90,13 @@ public class NetworkChannelFixture
     {
       while (this.stayAlive)
       {
-        this.networkChannel.receive().ifPresent(message ->
+        Optional<Message> msg = this.networkChannel.recieve();
+        msg.ifPresent(message ->
         {
           this.messages.add(message);
         });
         MaloWUtils.ignoreException(() -> Thread.sleep(1));
       }
-    }
-
-    public void sendToServer(String msg)
-    {
-      this.networkChannel.send(msg);
     }
 
     @Override
@@ -115,7 +107,7 @@ public class NetworkChannelFixture
   }
 
   protected TestServer testServer;
-  protected SocketAcceptor<StringNetworkChannel> testSocketAcceptor;
+  protected SocketAcceptor<TestProtoNetworkChannel> testSocketAcceptor;
   protected TestClient testClient;
 
   @Before

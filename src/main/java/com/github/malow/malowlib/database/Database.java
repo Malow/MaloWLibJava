@@ -14,7 +14,7 @@ public class Database
   {
     private static Map<Class<?>, Accessor<?>> accessors = new HashMap<>();
 
-    public static <T extends DatabaseTableEntity> void register(Accessor<T> accessor) throws ClassNotFoundException
+    public static <T extends DatabaseTableEntity> void register(Accessor<T> accessor)
     {
       accessors.put(accessor.getEntityClass(), accessor);
     }
@@ -33,7 +33,7 @@ public class Database
 
   private static final int TIMEOUT_MS = 100;
 
-  public static <T> void executeWithRetries(CheckedFunction f) throws Exception
+  public static void executeWithRetries(CheckedFunction f) throws Exception
   {
     long millies = System.currentTimeMillis();
     while (true)

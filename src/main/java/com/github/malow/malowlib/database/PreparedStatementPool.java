@@ -38,10 +38,7 @@ public class PreparedStatementPool
     {
       return this.connection.prepareStatement(this.statementString, this.statementsParam);
     }
-    else
-    {
-      return this.connection.prepareStatement(this.statementString);
-    }
+    return this.connection.prepareStatement(this.statementString);
   }
 
   private void add(PreparedStatement statement)

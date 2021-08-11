@@ -29,11 +29,8 @@ public class MatchmakingEngine extends MaloWProcess
       MaloWLogger.info("MatchmakingEngine enqueued player with id " + player.playerId + ".");
       return true;
     }
-    else
-    {
-      MaloWLogger.info("MatchmakingEngine tried to enqueue player with id " + player.playerId + " but the player was already in queue.");
-      return false;
-    }
+    MaloWLogger.info("MatchmakingEngine tried to enqueue player with id " + player.playerId + " but the player was already in queue.");
+    return false;
   }
 
   public boolean dequeue(Integer playerId)
@@ -45,11 +42,8 @@ public class MatchmakingEngine extends MaloWProcess
       MaloWLogger.info("MatchmakingEngine dequeued player with id " + player.playerId + ".");
       return true;
     }
-    else
-    {
-      MaloWLogger.info("MatchmakingEngine tried to dequeue player with id " + player.playerId + " but the player was not in queue.");
-      return false;
-    }
+    MaloWLogger.info("MatchmakingEngine tried to dequeue player with id " + player.playerId + " but the player was not in queue.");
+    return false;
   }
 
   public void updateConfig(MatchmakingEngineConfig config)

@@ -65,14 +65,7 @@ public class Accessor<Entity extends DatabaseTableEntity>
 
   private void init()
   {
-    try
-    {
-      Database.AccessorsSingleton.register(this);
-    }
-    catch (ClassNotFoundException e)
-    {
-      MaloWLogger.error("Failed to register Accessor to AccessorsSingleton for class " + this.getEntityClass().getSimpleName(), e);
-    }
+    Database.AccessorsSingleton.register(this);
     this.fields = Arrays.asList(this.entityClass.getFields());
     this.fields = this.fields.stream().filter(f -> !f.isAnnotationPresent(NotPersisted.class)).collect(Collectors.toList());
     this.tableName = this.entityClass.getSimpleName().toLowerCase();

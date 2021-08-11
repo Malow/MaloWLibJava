@@ -150,7 +150,7 @@ public class ConfigHandler
     }
   }
 
-  private static <T extends Config> void writeConfigToFile(String filePath, String json) throws Exception
+  private static void writeConfigToFile(String filePath, String json) throws Exception
   {
     new File(filePath).getAbsoluteFile().getParentFile().mkdirs();
     Files.write(Paths.get(filePath), json.getBytes(StandardCharsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);

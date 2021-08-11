@@ -9,9 +9,8 @@ import com.github.malow.malowlib.malowprocess.MaloWProcess;
 
 /**
  * Listens and accepts new TCP connections at specified port and sends ClientConnectedEvents to the specified notifier when a client connects.
- *
  */
-public abstract class SocketAcceptor extends MaloWProcess
+public abstract class SocketAcceptor<T extends NetworkChannel> extends MaloWProcess
 {
   private MaloWProcess notifier;
   private ServerSocket serverSocket = null;
@@ -37,7 +36,7 @@ public abstract class SocketAcceptor extends MaloWProcess
     this(port, notifier, 0);
   }
 
-  private NetworkChannel listenForNewClient()
+  private T listenForNewClient()
   {
     try
     {
@@ -61,14 +60,14 @@ public abstract class SocketAcceptor extends MaloWProcess
     return null;
   }
 
-  protected abstract NetworkChannel createNetworkChannel(Socket socket);
+  protected abstract T createNetworkChannel(Socket socket);
 
   @Override
   public void life()
   {
     while (this.stayAlive)
     {
-      NetworkChannel nc = this.listenForNewClient();
+      T nc = this.listenForNewClient();
       if (nc != null && this.stayAlive)
       {
         this.notifier.putEvent(new ClientConnectedEvent(nc));

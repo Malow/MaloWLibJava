@@ -14,7 +14,7 @@ public class QuickThread
   private static ThreadPool threadPool;
 
   @SuppressWarnings("unchecked")
-  public static <T, S> Future<S> doWork(CheckedFunctionWithParameterAndReturn<T, S> f, T parameter) throws Exception
+  public static <T, S> Future<S> doWork(CheckedFunctionWithParameterAndReturn<T, S> f, T parameter)
   {
     if (threadPool == null)
     {
@@ -25,7 +25,7 @@ public class QuickThread
   }
 
   @SuppressWarnings("unchecked")
-  public static <T, S> Future<S> doWork(CheckedFunctionWithReturn<S> f) throws Exception
+  public static <T> Future<T> doWork(CheckedFunctionWithReturn<T> f)
   {
     if (threadPool == null)
     {

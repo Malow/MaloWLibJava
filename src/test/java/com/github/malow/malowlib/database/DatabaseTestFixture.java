@@ -73,7 +73,7 @@ public class DatabaseTestFixture
   protected static final String DATABASE_NAME = "Test";
 
   @Before
-  public void resetDatabase() throws Exception
+  public void resetDatabase()
   {
     new File(DATABASE_NAME + ".db").delete();
     DatabaseConnection.resetAll();

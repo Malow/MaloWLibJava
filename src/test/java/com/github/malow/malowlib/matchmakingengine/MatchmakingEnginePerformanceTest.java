@@ -16,7 +16,7 @@ public class MatchmakingEnginePerformanceTest extends MatchmakingEngineTestFixtu
   private static final int EXPECTED_MATCHES = (int) (NR_OF_ENQUEUES / 2);
 
   @Test
-  public void testPerformance() throws InterruptedException
+  public void testPerformance()
   {
     MatchmakingEngineConfig config = new MatchmakingEngineConfig();
     config.matchFinderInterval = Optional.empty();

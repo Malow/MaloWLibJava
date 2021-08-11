@@ -9,12 +9,12 @@ public class ByteReader
 {
   private ByteBuffer bb;
 
-  protected ByteReader(ByteBuffer bb)
+  public ByteReader(ByteBuffer bb)
   {
     this.bb = bb;
   }
 
-  public byte[] getRaw()
+  public byte[] getByteArray()
   {
     return this.bb.array();
   }

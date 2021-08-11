@@ -4,12 +4,14 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
-import java.util.Optional;
 
 import com.github.malow.malowlib.MaloWLogger;
 import com.github.malow.malowlib.byteconversion.ByteConverter;
-import com.github.malow.malowlib.byteconversion.Byteable;
 
+/**
+ * Extend this and public add send and receive functions where you serialize and deserialize the data and then call the protected send and receive of this
+ * class. See {@link com.github.malow.malowlib.network.StringNetworkChannel} for an example.
+ */
 public abstract class NetworkChannel
 {
   private static long nextID = 0;
@@ -67,13 +69,28 @@ public abstract class NetworkChannel
     return System.currentTimeMillis() - this.lastActivity;
   }
 
-  public void sendMessage(Byteable message)
+  protected void sendBytes(byte[] bytes)
   {
     this.lastActivity = System.currentTimeMillis();
     try
     {
-      byte[] bytes = message.toByteArray();
       this.socket.getOutputStream().write(ByteConverter.fromInt(bytes.length));
+      this.socket.getOutputStream().write(bytes);
+    }
+    catch (Exception e)
+    {
+      MaloWLogger.error("Error sending message in Channel, closing: " + this.id, e);
+      this.close();
+    }
+  }
+
+  protected void sendBytesWithMessageTypeId(byte[] bytes, int messageTypeId)
+  {
+    this.lastActivity = System.currentTimeMillis();
+    try
+    {
+      this.socket.getOutputStream().write(ByteConverter.fromInt(bytes.length + 4));
+      this.socket.getOutputStream().write(ByteConverter.fromInt(messageTypeId));
       this.socket.getOutputStream().write(bytes);
     }
     catch (Exception e)
@@ -86,7 +103,10 @@ public abstract class NetworkChannel
   private Integer remainingPacketSize = null;
   private ByteBuffer incomingPacket = null;
 
-  public Optional<Byteable> getMessage()
+  /**
+   * Non-blocking
+   */
+  protected ByteBuffer receiveBytes()
   {
     try
     {
@@ -95,7 +115,7 @@ public abstract class NetworkChannel
       {
         if (available < 4)
         {
-          return Optional.empty();
+          return null;
         }
         this.lastActivity = System.currentTimeMillis();
         byte[] buffer = new byte[4];
@@ -104,7 +124,7 @@ public abstract class NetworkChannel
         this.incomingPacket = ByteBuffer.allocate(this.remainingPacketSize);
         available -= 4;
       }
-      if (available >= 0)
+      if (available > 0)
       {
         this.lastActivity = System.currentTimeMillis();
         int read = this.socket.getInputStream().read(this.incomingPacket.array(), this.incomingPacket.position(),
@@ -113,13 +133,15 @@ public abstract class NetworkChannel
         this.remainingPacketSize -= read;
         if (this.remainingPacketSize == 0)
         {
-          Optional<Byteable> message = Optional.of(this.createPacket(this.incomingPacket));
+          ByteBuffer message = this.incomingPacket;
+          message.position(0);
           this.remainingPacketSize = null;
+          this.incomingPacket = null;
           return message;
         }
         else if (this.remainingPacketSize > 0)
         {
-          return Optional.empty();
+          return null;
         }
         else
         {
@@ -138,10 +160,8 @@ public abstract class NetworkChannel
       MaloWLogger.error("Error receiving message in Channel, closing: " + this.id, e);
       this.close();
     }
-    return Optional.empty();
+    return null;
   }
-
-  protected abstract Byteable createPacket(ByteBuffer bb) throws Exception;
 
   public void close()
   {

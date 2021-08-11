@@ -164,10 +164,10 @@ public class MaloWLogger
 
   private static void logForAllLevels(String msg, boolean force)
   {
-    logForSpecificLevel(LogLevel.ALL, msg, true);
-    logForSpecificLevel(LogLevel.INFO, msg, true);
-    logForSpecificLevel(LogLevel.WARNING, msg, true);
-    logForSpecificLevel(LogLevel.ERROR, msg, true);
+    logForSpecificLevel(LogLevel.ALL, msg, force);
+    logForSpecificLevel(LogLevel.INFO, msg, force);
+    logForSpecificLevel(LogLevel.WARNING, msg, force);
+    logForSpecificLevel(LogLevel.ERROR, msg, force);
   }
 
   private static void logForSpecificLevel(LogLevel level, String msg, boolean force)

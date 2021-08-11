@@ -130,8 +130,7 @@ public class LetsEncryptDownloader
    */
 
   /**
-   * Generates a certificate for the given domains. Also takes care for the registration
-   * process.
+   * Generates a certificate for the given domains. Also takes care for the registration process.
    *
    * @param domains
    *          Domains to get a common certificate for
@@ -216,11 +215,9 @@ public class LetsEncryptDownloader
   }
 
   /**
-   * Loads a user key pair from {@value #USER_KEY_FILE}. If the file does not exist,
-   * a new key pair is generated and saved.
+   * Loads a user key pair from {@value #USER_KEY_FILE}. If the file does not exist, a new key pair is generated and saved.
    * <p>
-   * Keep this key pair in a safe place! In a production environment, you will not be
-   * able to access your account again if you should lose the key pair.
+   * Keep this key pair in a safe place! In a production environment, you will not be able to access your account again if you should lose the key pair.
    *
    * @return User's {@link KeyPair}.
    */
@@ -235,21 +232,17 @@ public class LetsEncryptDownloader
       }
 
     }
-    else
+    // If there is none, create a new key pair and save it
+    KeyPair userKeyPair = KeyPairUtils.createKeyPair(KEY_SIZE);
+    try (FileWriter fw = new FileWriter(USER_KEY_FILE))
     {
-      // If there is none, create a new key pair and save it
-      KeyPair userKeyPair = KeyPairUtils.createKeyPair(KEY_SIZE);
-      try (FileWriter fw = new FileWriter(USER_KEY_FILE))
-      {
-        KeyPairUtils.writeKeyPair(userKeyPair, fw);
-      }
-      return userKeyPair;
+      KeyPairUtils.writeKeyPair(userKeyPair, fw);
     }
+    return userKeyPair;
   }
 
   /**
-   * Loads a domain key pair from {@value #DOMAIN_KEY_FILE}. If the file does not exist,
-   * a new key pair is generated and saved.
+   * Loads a domain key pair from {@value #DOMAIN_KEY_FILE}. If the file does not exist, a new key pair is generated and saved.
    *
    * @return Domain {@link KeyPair}.
    */
@@ -262,27 +255,21 @@ public class LetsEncryptDownloader
         return KeyPairUtils.readKeyPair(fr);
       }
     }
-    else
+    KeyPair domainKeyPair = KeyPairUtils.createKeyPair(KEY_SIZE);
+    try (FileWriter fw = new FileWriter(DOMAIN_KEY_FILE))
     {
-      KeyPair domainKeyPair = KeyPairUtils.createKeyPair(KEY_SIZE);
-      try (FileWriter fw = new FileWriter(DOMAIN_KEY_FILE))
-      {
-        KeyPairUtils.writeKeyPair(domainKeyPair, fw);
-      }
-      return domainKeyPair;
+      KeyPairUtils.writeKeyPair(domainKeyPair, fw);
     }
+    return domainKeyPair;
   }
 
   /**
-   * Finds your {@link Account} at the ACME server. It will be found by your user's
-   * public key. If your key is not known to the server yet, a new account will be
-   * created.
+   * Finds your {@link Account} at the ACME server. It will be found by your user's public key. If your key is not known to the server yet, a new account will
+   * be created.
    * <p>
-   * This is a simple way of finding your {@link Account}. A better way is to get the
-   * URL and KeyIdentifier of your new account with {@link Account#getLocation()}
-   * {@link Session#getKeyIdentifier()} and store it somewhere. If you need to get
-   * access to your account later, reconnect to it via
-   * {@link Account#bind(Session, URI)} by using the stored location.
+   * This is a simple way of finding your {@link Account}. A better way is to get the URL and KeyIdentifier of your new account with
+   * {@link Account#getLocation()} {@link Session#getKeyIdentifier()} and store it somewhere. If you need to get access to your account later, reconnect to it
+   * via {@link Account#bind(Session, URI)} by using the stored location.
    *
    * @param session
    *          {@link Session} to bind with
@@ -298,8 +285,7 @@ public class LetsEncryptDownloader
   }
 
   /**
-   * Authorize a domain. It will be associated with your account, so you will be able to
-   * retrieve a signed certificate for the domain later.
+   * Authorize a domain. It will be associated with your account, so you will be able to retrieve a signed certificate for the domain later.
    *
    * @param auth
    *          {@link Authorization} to perform
@@ -368,12 +354,10 @@ public class LetsEncryptDownloader
   /**
    * Prepares a HTTP challenge.
    * <p>
-   * The verification of this challenge expects a file with a certain content to be
-   * reachable at a given path under the domain to be tested.
+   * The verification of this challenge expects a file with a certain content to be reachable at a given path under the domain to be tested.
    * <p>
-   * This example outputs instructions that need to be executed manually. In a
-   * production environment, you would rather generate this file automatically, or maybe
-   * use a servlet that returns {@link Http01Challenge#getAuthorization()}.
+   * This example outputs instructions that need to be executed manually. In a production environment, you would rather generate this file automatically, or
+   * maybe use a servlet that returns {@link Http01Challenge#getAuthorization()}.
    *
    * @param auth
    *          {@link Authorization} to find the challenge in

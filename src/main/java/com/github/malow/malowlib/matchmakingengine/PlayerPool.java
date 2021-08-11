@@ -41,10 +41,7 @@ public class PlayerPool extends ConcurrentSkipListSet<MatchmakingPlayer>
             previous = null;
             continue;
           }
-          else
-          {
-            this.add(player);
-          }
+          this.add(player);
         }
       }
       previous = player;

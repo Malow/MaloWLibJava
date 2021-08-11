@@ -4,10 +4,16 @@ import com.github.malow.malowlib.malowprocess.ProcessEvent;
 
 public class ClientConnectedEvent extends ProcessEvent
 {
-  public NetworkChannel client;
+  private Object client;
 
-  public ClientConnectedEvent(NetworkChannel client)
+  public ClientConnectedEvent(Object client)
   {
     this.client = client;
+  }
+
+  @SuppressWarnings("unchecked")
+  public <S extends NetworkChannel> S getClient()
+  {
+    return (S) this.client;
   }
 }

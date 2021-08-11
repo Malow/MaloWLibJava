@@ -24,7 +24,7 @@ public class PersistedData
       this.data = dataClass.getDeclaredConstructor().newInstance();
     }
 
-    public DataContainer(T data) throws Exception
+    public DataContainer(T data)
     {
       this.data = data;
     }

@@ -1,0 +1,26 @@
+syntax = "proto2";
+
+package tutorial;
+
+option java_multiple_files = true;
+option java_package = "com.github.malow.malowlib.byteconversion.proto";
+option java_outer_classname = "TestDataProtos";
+
+message TestDataProto {
+  required string s = 1;
+  repeated int32 i = 2;
+  
+  message ListOfList {
+    repeated double d = 1;
+  }
+  
+  repeated ListOfList d = 3;
+  required bool b = 4;
+  
+  message InnerTestDataProto {
+	required string s = 1;
+	repeated int32 i = 2;
+  }
+  
+  required InnerTestDataProto inner = 5;
+}

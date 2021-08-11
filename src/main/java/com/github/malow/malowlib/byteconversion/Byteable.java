@@ -6,7 +6,6 @@ import com.github.malow.malowlib.MaloWLogger;
 
 /**
  * A simple class to inherit to make something serializeable into and from bytes, using no fluff or padding.
- * Overwrite setValues and getBytes to increase efficiency since those use reflection to be able to do it automatically.
  *
  * int = 4 bytes
  * double = 8 bytes
@@ -17,7 +16,7 @@ import com.github.malow.malowlib.MaloWLogger;
  */
 public abstract class Byteable
 {
-  public Byteable()
+  protected Byteable()
   {
 
   }

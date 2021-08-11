@@ -25,7 +25,7 @@ public class ConfigHandlerTest
   }
 
   @After
-  public void deleteOldVersionFile() throws Exception
+  public void deleteOldVersionFile()
   {
     new File(FILE_PATH).delete();
   }
