@@ -1,8 +1,8 @@
-package com.github.malow.malowlib;
+package com.github.malow.malowlib.time;
 
 import com.github.malow.malowlib.lambdainterfaces.CheckedFunction;
 
-// TODO: Start using this everywhere, search for nanoTime, maybe add an ms-version too
+// TODO: Start using this everywhere, search for "nanoTime" and "currentTimeMillis"
 public class PerformanceMeasure
 {
   /**

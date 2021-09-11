@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import org.junit.Test;
 
+import com.github.malow.malowlib.id.WithUUID;
+
 public class WithUUIDTest
 {
   public static class UUIDTest extends WithUUID

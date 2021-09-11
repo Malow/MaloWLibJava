@@ -20,10 +20,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.malow.malowlib.GsonSingleton;
-import com.github.malow.malowlib.PerformanceMeasure;
 import com.github.malow.malowlib.byteconversion.proto.TestDataProto;
 import com.github.malow.malowlib.byteconversion.proto.TestDataProto.InnerTestDataProto;
 import com.github.malow.malowlib.byteconversion.proto.TestDataProto.ListOfList;
+import com.github.malow.malowlib.time.PerformanceMeasure;
 
 public class ByteableTest
 {

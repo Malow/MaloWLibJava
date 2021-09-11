@@ -1,12 +1,15 @@
 package com.github.malow.malowlib.network;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 
 import com.github.malow.malowlib.MaloWLogger;
 import com.github.malow.malowlib.byteconversion.ByteConverter;
+import com.github.malow.malowlib.lambdainterfaces.CheckedFunctionWithParameter;
+import com.github.malow.malowlib.time.ImpreciseTimer;
 
 /**
  * Extend this and public add send and receive functions where you serialize and deserialize the data and then call the protected send and receive of this
@@ -14,6 +17,16 @@ import com.github.malow.malowlib.byteconversion.ByteConverter;
  */
 public abstract class NetworkChannel
 {
+  public static class NetworkChannelClosedException extends Exception
+  {
+
+  }
+
+  private static final int PING_TYPE_ID = Integer.MAX_VALUE;
+  @SuppressWarnings("unused") // Not directly used, but the value itself is used (by modifying the incoming buffer)
+  private static final int PING_RESPONSE_TYPE_ID = Integer.MAX_VALUE - 1;
+  private static final int PACKET_MAX_SIZE = 1000000; // 1 MB
+
   private static long nextID = 0;
 
   private static synchronized long getAndIncrementId()
@@ -29,20 +42,23 @@ public abstract class NetworkChannel
   }
 
   private Socket socket = null;
-  private long lastActivity = 0;
+  private Integer remainingPacketSize = null;
+  private ByteBuffer incomingPacket = null;
+  private ImpreciseTimer pingTimer = new ImpreciseTimer();
+  private boolean hasOngoingPing = false;
+  private long ping = 0;
 
   public NetworkChannel(Socket socket)
   {
     this.socket = socket;
-    this.lastActivity = System.currentTimeMillis();
   }
 
-  public NetworkChannel(String ip, int port)
+  public NetworkChannel(String ip, int port, int readTimeoutMs)
   {
     try
     {
       this.socket = new Socket(ip, port);
-      this.lastActivity = System.currentTimeMillis();
+      this.socket.setSoTimeout(readTimeoutMs);
     }
     catch (Exception e)
     {
@@ -53,60 +69,73 @@ public abstract class NetworkChannel
 
   public boolean isConnected()
   {
-    if (this.socket == null)
+    if (this.socket == null || this.socket.isClosed())
     {
       return false;
     }
-    if (this.socket.isClosed())
+    return this.socket.isConnected();
+  }
+
+  protected void sendBytes(byte[] bytes) throws NetworkChannelClosedException
+  {
+    this.send(output ->
     {
-      return false;
+      output.write(ByteConverter.fromInt(bytes.length));
+      output.write(bytes);
+    });
+  }
+
+  protected void sendBytesWithMessageTypeId(int messageTypeId, byte[] bytes) throws NetworkChannelClosedException
+  {
+    this.send(output ->
+    {
+      output.write(ByteConverter.fromInt(bytes.length + 4));
+      output.write(ByteConverter.fromInt(messageTypeId));
+      output.write(bytes);
+    });
+  }
+
+  public void sendPingWithInterval(int intervalMs) throws NetworkChannelClosedException
+  {
+    if (this.hasOngoingPing || !this.pingTimer.hasElapsed(intervalMs))
+    {
+      return;
     }
-    return true;
+    this.pingTimer.reset();
+    this.hasOngoingPing = true;
+    this.send(output ->
+    {
+      output.write(ByteConverter.fromInt(PING_TYPE_ID));
+    });
   }
 
-  public long getTimeSinceLastActivityMs()
+  public int getPing()
   {
-    return System.currentTimeMillis() - this.lastActivity;
+    if (this.hasOngoingPing)
+    {
+      return (int) Math.max(this.ping, this.pingTimer.getElapsed());
+    }
+    return (int) this.ping;
   }
 
-  protected void sendBytes(byte[] bytes)
+  protected void send(CheckedFunctionWithParameter<OutputStream> function) throws NetworkChannelClosedException
   {
-    this.lastActivity = System.currentTimeMillis();
     try
     {
-      this.socket.getOutputStream().write(ByteConverter.fromInt(bytes.length));
-      this.socket.getOutputStream().write(bytes);
+      function.apply(this.socket.getOutputStream());
     }
     catch (Exception e)
     {
-      MaloWLogger.error("Error sending message in Channel, closing: " + this.id, e);
+      MaloWLogger.error("Error sending in Channel, closing: " + this.id, e);
       this.close();
+      throw new NetworkChannelClosedException();
     }
   }
-
-  protected void sendBytesWithMessageTypeId(byte[] bytes, int messageTypeId)
-  {
-    this.lastActivity = System.currentTimeMillis();
-    try
-    {
-      this.socket.getOutputStream().write(ByteConverter.fromInt(bytes.length + 4));
-      this.socket.getOutputStream().write(ByteConverter.fromInt(messageTypeId));
-      this.socket.getOutputStream().write(bytes);
-    }
-    catch (Exception e)
-    {
-      MaloWLogger.error("Error sending message in Channel, closing: " + this.id, e);
-      this.close();
-    }
-  }
-
-  private Integer remainingPacketSize = null;
-  private ByteBuffer incomingPacket = null;
 
   /**
    * Non-blocking
    */
-  protected ByteBuffer receiveBytes()
+  protected ByteBuffer receiveBytes() throws NetworkChannelClosedException
   {
     try
     {
@@ -117,16 +146,37 @@ public abstract class NetworkChannel
         {
           return null;
         }
-        this.lastActivity = System.currentTimeMillis();
         byte[] buffer = new byte[4];
         this.socket.getInputStream().read(buffer);
         this.remainingPacketSize = ByteBuffer.wrap(buffer).getInt();
+        if (this.remainingPacketSize == PING_TYPE_ID)
+        {
+          this.remainingPacketSize = null;
+          buffer[3]--; // Send back PING_RESPONSE_TYPE_ID
+          this.send(output -> output.write(buffer));
+          return null;
+        }
+        if (this.remainingPacketSize == PING_RESPONSE_TYPE_ID)
+        {
+          this.remainingPacketSize = null;
+          if (!this.hasOngoingPing)
+          {
+            MaloWLogger.error("Received a PING_RESPONSE_TYPE_ID but I have no ongoing ping");
+            return null;
+          }
+          this.ping = this.pingTimer.getElapsed();
+          this.hasOngoingPing = false;
+          return null;
+        }
+        if (this.remainingPacketSize > PACKET_MAX_SIZE)
+        {
+          throw new Exception("Received a packet above PACKET_MAX_SIZE, size: " + this.remainingPacketSize);
+        }
         this.incomingPacket = ByteBuffer.allocate(this.remainingPacketSize);
         available -= 4;
       }
       if (available > 0)
       {
-        this.lastActivity = System.currentTimeMillis();
         int read = this.socket.getInputStream().read(this.incomingPacket.array(), this.incomingPacket.position(),
             Math.min(available, this.remainingPacketSize));
         this.incomingPacket.position(read + this.incomingPacket.position());
@@ -146,6 +196,8 @@ public abstract class NetworkChannel
         else
         {
           MaloWLogger.error("NetworkChannel had a remainingPacketSize of negative value: " + this.remainingPacketSize);
+          this.close();
+          throw new NetworkChannelClosedException();
         }
       }
     }
@@ -154,11 +206,13 @@ public abstract class NetworkChannel
       MaloWLogger.error("Got a SocketTimeoutException in NetworkChannel: " + this.id
           + ", THIS SHOULD NOT HAPPEN, there's a problem with avaialable() returning bad data.", e);
       this.close();
+      throw new NetworkChannelClosedException();
     }
     catch (Exception e)
     {
       MaloWLogger.error("Error receiving message in Channel, closing: " + this.id, e);
       this.close();
+      throw new NetworkChannelClosedException();
     }
     return null;
   }
@@ -195,11 +249,7 @@ public abstract class NetworkChannel
     {
       return true;
     }
-    if (obj == null)
-    {
-      return false;
-    }
-    if (this.getClass() != obj.getClass())
+    if (obj == null || this.getClass() != obj.getClass())
     {
       return false;
     }

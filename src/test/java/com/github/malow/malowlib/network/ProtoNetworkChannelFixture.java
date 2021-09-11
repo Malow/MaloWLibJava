@@ -14,6 +14,7 @@ import org.junit.Before;
 import com.github.malow.malowlib.MaloWUtils;
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
+import com.github.malow.malowlib.network.NetworkChannel.NetworkChannelClosedException;
 import com.github.malow.malowlib.network.ProtoNetworkChannelTest.TestProtoNetworkChannel;
 import com.google.protobuf.Message;
 
@@ -56,13 +57,19 @@ public class ProtoNetworkChannelFixture
         }
         for (TestProtoNetworkChannel client : this.clients)
         {
-          Optional<Message> msg = client.recieve();
-          msg.ifPresent(message ->
+          try
           {
-            List<Message> m = this.messages.get(client);
-            m.add(message);
-            this.messages.put(client, m);
-          });
+            Optional<Message> msg = client.receive();
+            msg.ifPresent(message ->
+            {
+              List<Message> m = this.messages.get(client);
+              m.add(message);
+              this.messages.put(client, m);
+            });
+          }
+          catch (NetworkChannelClosedException e)
+          {
+          }
         }
         MaloWUtils.ignoreException(() -> Thread.sleep(10));
       }
@@ -82,7 +89,7 @@ public class ProtoNetworkChannelFixture
 
     public TestClient()
     {
-      this.networkChannel = new TestProtoNetworkChannel(IP, PORT);
+      this.networkChannel = new TestProtoNetworkChannel(IP, PORT, 0);
     }
 
     @Override
@@ -90,12 +97,18 @@ public class ProtoNetworkChannelFixture
     {
       while (this.stayAlive)
       {
-        Optional<Message> msg = this.networkChannel.recieve();
-        msg.ifPresent(message ->
+        try
         {
-          this.messages.add(message);
-        });
-        MaloWUtils.ignoreException(() -> Thread.sleep(1));
+          Optional<Message> msg = this.networkChannel.receive();
+          msg.ifPresent(message ->
+          {
+            this.messages.add(message);
+          });
+          MaloWUtils.ignoreException(() -> Thread.sleep(1));
+        }
+        catch (NetworkChannelClosedException e)
+        {
+        }
       }
     }
 

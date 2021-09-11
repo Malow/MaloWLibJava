@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.assertj.core.data.Offset;
 import org.junit.Test;
 
+import com.github.malow.malowlib.time.PerformanceMeasure;
+
 public class PerformanceMeasureTest
 {
   @Test

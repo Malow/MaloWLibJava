@@ -6,9 +6,9 @@ import java.util.Optional;
 
 public class StringNetworkChannel extends NetworkChannel
 {
-  public StringNetworkChannel(String ip, int port)
+  public StringNetworkChannel(String ip, int port, int readTimeoutMs)
   {
-    super(ip, port);
+    super(ip, port, readTimeoutMs);
   }
 
   public StringNetworkChannel(Socket socket)
@@ -16,12 +16,12 @@ public class StringNetworkChannel extends NetworkChannel
     super(socket);
   }
 
-  public void send(String message)
+  public void send(String message) throws NetworkChannelClosedException
   {
     this.sendBytes(message.getBytes());
   }
 
-  public Optional<String> receive()
+  public Optional<String> receive() throws NetworkChannelClosedException
   {
     ByteBuffer bb = this.receiveBytes();
     if (bb == null)

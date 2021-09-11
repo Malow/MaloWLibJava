@@ -15,19 +15,19 @@ public abstract class ProtoNetworkChannel extends NetworkChannel
     super(socket);
   }
 
-  public ProtoNetworkChannel(String ip, int port)
+  public ProtoNetworkChannel(String ip, int port, int readTimeoutMs)
   {
-    super(ip, port);
+    super(ip, port, readTimeoutMs);
   }
 
-  protected void sendWithMessageTypeId(Message message, int messageTypeId)
+  protected void sendWithMessageTypeId(int messageTypeId, Message message) throws NetworkChannelClosedException
   {
-    this.sendBytesWithMessageTypeId(message.toByteArray(), messageTypeId);
+    this.sendBytesWithMessageTypeId(messageTypeId, message.toByteArray());
   }
 
   protected abstract Class<? extends Message> getMessageClassForType(int type);
 
-  public Optional<Message> recieve()
+  public Optional<Message> receive() throws NetworkChannelClosedException
   {
     ByteBuffer bb = this.receiveBytes();
     if (bb == null)

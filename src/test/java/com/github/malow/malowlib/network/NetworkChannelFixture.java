@@ -13,6 +13,7 @@ import org.junit.Before;
 import com.github.malow.malowlib.MaloWUtils;
 import com.github.malow.malowlib.malowprocess.MaloWProcess;
 import com.github.malow.malowlib.malowprocess.ProcessEvent;
+import com.github.malow.malowlib.network.NetworkChannel.NetworkChannelClosedException;
 
 public class NetworkChannelFixture
 {
@@ -53,18 +54,24 @@ public class NetworkChannelFixture
         }
         for (StringNetworkChannel client : this.clients)
         {
-          client.receive().ifPresent(message ->
+          try
           {
-            List<String> m = this.messages.get(client);
-            m.add(message);
-            this.messages.put(client, m);
-          });
+            client.receive().ifPresent(message ->
+            {
+              List<String> m = this.messages.get(client);
+              m.add(message);
+              this.messages.put(client, m);
+            });
+          }
+          catch (NetworkChannelClosedException e)
+          {
+          }
         }
         MaloWUtils.ignoreException(() -> Thread.sleep(10));
       }
     }
 
-    public void sendToAllClients(String msg)
+    public void sendToAllClients(String msg) throws NetworkChannelClosedException
     {
       for (StringNetworkChannel client : this.clients)
       {
@@ -86,7 +93,7 @@ public class NetworkChannelFixture
 
     public TestClient()
     {
-      this.networkChannel = new StringNetworkChannel(IP, PORT);
+      this.networkChannel = new StringNetworkChannel(IP, PORT, 0);
     }
 
     @Override
@@ -94,15 +101,21 @@ public class NetworkChannelFixture
     {
       while (this.stayAlive)
       {
-        this.networkChannel.receive().ifPresent(message ->
+        try
         {
-          this.messages.add(message);
-        });
+          this.networkChannel.receive().ifPresent(message ->
+          {
+            this.messages.add(message);
+          });
+        }
+        catch (NetworkChannelClosedException e)
+        {
+        }
         MaloWUtils.ignoreException(() -> Thread.sleep(1));
       }
     }
 
-    public void sendToServer(String msg)
+    public void sendToServer(String msg) throws NetworkChannelClosedException
     {
       this.networkChannel.send(msg);
     }

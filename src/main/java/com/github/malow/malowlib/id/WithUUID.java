@@ -1,9 +1,9 @@
-package com.github.malow.malowlib;
+package com.github.malow.malowlib.id;
 
 import java.util.UUID;
 
 /**
- * A simple class to extend to get a UUID included, implements hashCode and equals based on the UUID
+ * A simple class to extend to get a UUID (128 bit) included, implements hashCode and equals based on the UUID
  */
 public abstract class WithUUID
 {
@@ -14,15 +14,10 @@ public abstract class WithUUID
 
   public WithUUID()
   {
-
+    this.uuid = UUID.randomUUID();
   }
 
   private UUID uuid;
-
-  protected void generateAndSetUuid()
-  {
-    this.uuid = UUID.randomUUID();
-  }
 
   protected void setUuid(UUID uuid)
   {

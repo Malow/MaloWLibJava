@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.github.malow.malowlib.MaloWLogger;
 import com.github.malow.malowlib.RandomNumberGenerator;
 
 public class NetworkChannelTest extends NetworkChannelFixture
@@ -51,10 +52,12 @@ public class NetworkChannelTest extends NetworkChannelFixture
   }
 
   @Test
-  public void testHugeMessageCanBeSent() throws Exception
+  public void testBigMessageCanBeSent() throws Exception
   {
+    MaloWLogger.init();
+    MaloWLogger.setLoggingThresholdToInfo();
     StringBuffer message = new StringBuffer();
-    for (int i = 0; i < 1000000; i++)
+    for (int i = 0; i < 900000; i++)
     {
       message.append((char) RandomNumberGenerator.getRandomInt(33, 125));
       if (i % 200 == 0)

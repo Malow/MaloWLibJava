@@ -49,9 +49,9 @@ public class ProtoNetworkChannelTest extends ProtoNetworkChannelFixture
       super(socket);
     }
 
-    public TestProtoNetworkChannel(String ip, int port)
+    public TestProtoNetworkChannel(String ip, int port, int readTimeoutMs)
     {
-      super(ip, port);
+      super(ip, port, readTimeoutMs);
     }
 
     @Override
@@ -60,9 +60,9 @@ public class ProtoNetworkChannelTest extends ProtoNetworkChannelFixture
       return TestProtoMessageType.fromInt(type).getPacketClass();
     }
 
-    protected void send(Message message, TestProtoMessageType messageType)
+    protected void send(TestProtoMessageType messageType, Message message) throws NetworkChannelClosedException
     {
-      this.sendWithMessageTypeId(message, messageType.toInt());
+      this.sendWithMessageTypeId(messageType.toInt(), message);
     }
   }
 
@@ -73,8 +73,14 @@ public class ProtoNetworkChannelTest extends ProtoNetworkChannelFixture
         .build();
     InnerTestDataProto data2 = InnerTestDataProto.newBuilder().setS("InnerTestDataProto").build();
 
-    this.testServer.clients.forEach(c -> c.send(data, TestProtoMessageType.TEST_DATA_PROTO));
-    this.testServer.clients.forEach(c -> c.send(data2, TestProtoMessageType.INNER_TEST_DATA_PROTO));
+    for (TestProtoNetworkChannel client : this.testServer.clients)
+    {
+      client.send(TestProtoMessageType.TEST_DATA_PROTO, data);
+    }
+    for (TestProtoNetworkChannel client : this.testServer.clients)
+    {
+      client.send(TestProtoMessageType.INNER_TEST_DATA_PROTO, data2);
+    }
 
     Thread.sleep(100);
 
